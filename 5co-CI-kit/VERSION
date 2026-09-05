@@ -1,5 +1,5 @@
-v3.6
-date: 2026-07-13
+v3.7
+date: 2026-08-03
 format: ci-format-v3.2.css + ci-cover-light-v3.3.css（ライトバリアント追補：表紙=crystal-55／本文=crystal-25） + ci-charts.css（機能色・チャート） + V3.2_FORMAT.md
 serif-en: Hoefler Text（macOS標準・Adobe Fonts 依存なし）
 head: 案件ビルダーの正典CSS連結は ci_head.py 経由のみ（CSSコピー・inline再実装禁止・上記 format 宣言を自動追従）
@@ -8,6 +8,7 @@ utils: ページ参照は ci_pagerefs.py の {{PG:タイトル}} トークンで
 cover-ci: 表紙CIコンセプト必須（cover-full・pd-divider除く）。正典＝ci_head.cover_ci_block()（単一情報源・全CIスライド規則）
 naming: 色=crystal blue（--crystal）／濃紺=ink（--ink）／数字背景=Oracle（.numfield-full）で呼称統一（CI_KICKOFF.md「CI用語」）
 patterns: SLIDE-PATTERN 129種（docs/SLIDE-PATTERN/・2026-07-13 追補でノード・エッジ型グラフ図 node-edge-graph を追加）。型選び＝framework-recommend スキル／CI v2 変換＝scripts/ci_pattern_adapter.py（全129種3色QA合格）
+templates: 型見本＝5co_slide_template.html／事業説明デッキ＝5co_biz_briefing_template.html（{{CLIENT}}・{{MEETING_DATE}}・CLIENT LOGO を差し替えて使用・2026-08-03 新設）
 canonical: 5co-hub/template:5co-CI-kit（唯一の格納場所・CI_SOURCE.md 参照）
 rule: すべてのセッションは生成前に本ファイルを確認し、常にこの最新版でスライドを作成する
-note: v3.6 の 2026-07-13 追補（版号据え置き＝フレームワーク1種追加のためオーナー裁定・CSS 不変: ci-format-v3.2.css/ci-cover-light-v3.3.css/ci-charts.css そのまま）。ノード・エッジ型グラフ図（フロー図・ネットワーク図）を正典化——グリッド座標系（列×行＋接続点の式・純SVG/ハイブリッド=node-HTML×edge-SVG の2構成・V3.2_FORMAT.md「ノード・エッジ型グラフ図」）と専用ゲート graph_node_edge_check.py（NODE_OVERLAP/EDGE_DETACHED/NO_NODES）を新設し、SLIDE-PATTERN に node-edge-graph を追加（128種→129種）。あわせて check_text_overlap.py に NEAR-MISS 警告ティア（非ブロッキング）、全CI型共通の「暗黙確認」（ゲートOK後の目視必須＝規定2.5）を制定。顧客OKR会 AI運用OODAループ資料（data-analysis）からの逆輸入
+note: v3.7（2026-08-03）＝後方互換の追加のみ・CSS/トークン/寸法は v3.6 から不変。WELLA様向け事業説明資料（2026-07-14）から汎用部6枚（表紙／Agenda／会社紹介／運用サイクル／OODA月次ループのプロセス図／ご確認事項）を抽出・プレースホルダ化した事業説明デッキ・テンプレ 5co_biz_briefing_template.html を新設。元資料ローカルの .title-blue（#1B3F73・3色ルール外）はテンプレでは --ink に戻した（正典化は別途オーナー裁定）。v3.6 の内容（ノード・エッジ型グラフ図正典化ほか）は CHANGELOG.md 参照

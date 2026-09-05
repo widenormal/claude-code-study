@@ -19,6 +19,24 @@
 
 ---
 
+## slide v3.7（準拠 brand v2） — 2026-08-03
+
+> 後方互換の追加（MINOR）。CSS・トークン値・レイアウト寸法はすべて v3.6 から不変。
+> WELLA様向け事業説明資料（2026-07-14 打ち合わせ版）からの汎用化。
+> 版号は据え置き（v3.6 追補）裁定も可＝PR レビューで確定。
+
+- **事業説明デッキ・テンプレを新設（`5co_biz_briefing_template.html`・6枚）**：
+  表紙（cover-full＋cover-ci）／Agenda（ご質問4問形式・水晶玉イラスト）／会社紹介／
+  「広告運用×データ×目標管理」サイクル／**OODA月次ループのプロセス図**
+  （Observe→Orient→Decide→Act。DECIDE の「コンサルタントが自動生成資料に修正を加え
+  完成させます」＝社員への確認提出工程）／本日のご確認事項。
+  `{{CLIENT}}`・`{{MEETING_DATE}}`・CLIENT LOGO プレースホルダを差し替えて使用。
+  実績・数値スライドは各案件で deck_data 由来の実値のみ追加（推測・手打ち禁止）
+- 元資料ローカルの `.title-blue{color:#1B3F73}`（3色ルール外・2026-07-14 案件内追加）は
+  テンプレでは既定の --ink に戻した（紺タイトルの正典化は別途オーナー裁定）
+- ゲート実績: slide_overflow_check.py OK／check_text_overlap.py OK（Linux Chromium 実測）
+  ＋PDF レンダリング目視（暗黙確認）
+
 ## slide v3.6 追補（準拠 brand v2） — 2026-07-13
 > v3.6 の同版内追補（**版号据え置き**＝フレームワーク1種追加のためオーナー裁定・2026-07-13）。
 > CSS（`ci-format-v3.2.css`/`ci-cover-light-v3.3.css`/`ci-charts.css`）・トークン値・レイアウト寸法は

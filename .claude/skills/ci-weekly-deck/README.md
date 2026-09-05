@@ -45,6 +45,12 @@ python3 scripts/build_deck.py --pdf         # PDFも出す
 # 1) データ抽出(ライブにする時)
 python3 scripts/extract_deck_data.py        # → deck_data.json(config の data.* に指定)
 
+# 1.2) 入力ゲート(Observe/Orient 欠損チェック・必須)
+#    生成前に deck_data の範囲・OKR進捗・年間計画書・前回定例会の文字起こし等の入力を確認。
+#    欠損時はまず担当コンサルタントへ「データ欠損アラート」、データ自体が無いと確定したら
+#    CTO 石井聡明さんへのサポート依頼・年間計画書の作成支援を提案(欠損の推測・ダミー補完禁止。
+#    詳細 = ci-weekly-deck.md Step 1.2 / docs/slide-process-ooda.md「入力ゲートとアラート」)。
+
 # 1.5) 所見MDドラフト確認(実値差し替え前・必須)
 #    assets/shoken_draft_template.md を作業フォルダにコピーして所見を MD で埋め、ユーザー承認を取る。
 #    高コストな HTML 差し替え前に、軽い MD 段階で論旨を確定させ手戻りを断つ(MD→HTML→PPTX の内容確認点)。
@@ -60,6 +66,10 @@ python3 ../../../5co-CI-kit/slide_overflow_check.py output/週次デッキ.html
 python3 ../../../scripts/html_to_pptx.py output/週次デッキ.pdf -o output/週次デッキ.pptx
 #    A4横PDFの各ページを1スライド=1ページの画像ベースPPTXに変換(寸法はPDFから自動・CI完全忠実)。
 #    画像ベースのため文言修正はデータ/build_deck.py に戻る。位置の微調整のみ PowerPoint で。
+
+# 5) 定例会後(必須)
+#    配布時(Step 4)の依頼文に「定例会後は会議音声の文字起こしのインプットをお願いします」を添える。
+#    広告運用指示書は実行(ACT)前にコンサルタントの確認・承認必須(承認なしで入札・予算・KWメンテへ反映しない)。
 ```
 
 ## CI制約(厳守)
