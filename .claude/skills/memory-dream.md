@@ -1,115 +1,140 @@
 ---
 name: memory-dream
-description: 記憶階層を定期的に再編し重複・矛盾・陳腐化を除去する consolidation 手順
+description: 記憶ファイルを剪定し、現在ビューを現在情報だけに戻す consolidation 手順
 type: playbook
 ---
 
-# memory dream（記憶の整理／consolidation）
+# memory dream（記憶の剪定／consolidation）
 
-agents-share の記憶階層を定期的に再編し、重複・矛盾・陳腐化を除去する作業の手順書。Anthropic Managed Agents の **Dreams**（別名 auto-dream）を、本環境（手動・git ベース）で再現するためのもの。
+本リポの記憶ファイルを定期的に剪定し、重複・矛盾・陳腐化を除去する手順書。
+SessionStart の⑧肥大化検知が警告を出したとき、この手順で解消する。
 
 ## これは何か / なぜ必要か
 
-エージェントはセッションごとに記憶へ追記する。追記は局所的・増分的なので、20〜30 セッションを超えると memory store に **重複・矛盾・陳腐化エントリ**が溜まり、ノートが「思い出す助け」から「混乱させるノイズ」へ転落する（相対日付の意味喪失、削除済みファイルを指す古い手順など）。
+エージェントはセッションごとに記憶へ追記する。追記は局所的・増分的なので、放置すると
+`memory/active-context.md` が「現在の状態」ではなく「完了報告の堆積」になる。
+このファイルは **SessionStart で全文が自動注入される**ため、肥大はそのまま毎セッションの
+トークン消費とノイズになり、さらに古い「次にやること」が現在の指示として読まれる
+**状態ドリフト**を生む。
 
-Dreams は人間の REM 睡眠による記憶定着のメタファ。過去セッションと既存 store を読み、**重複をマージ・古い/矛盾する値を最新で置換・繰り返しパターンを簡潔な知見として抽出**した新しい store を生成する。本家 API では入力 store を決して書き換えず、出力は別 store として opt-in でレビューしてから採用する。
+**実測（2026-07-26 の初回剪定時点）**: `memory/active-context.md` は 599 行 / 64,031 bytes
+まで肥大し、SessionStart 注入 86,178 bytes の **74%** を単独で占めていた。うち
+「## 現在の作業状態」配下 531 行の **68%（360 行）が完了済み `### ✅` エントリ**だった。
+⑧検知は 2026-07-09 の導入以来毎セッション警告を出していたが、剪定は一度も実行されず、
+行数は単調増加のみだった（2026-07-13 524 行 → 2026-07-21 599 行）。
 
-## 本環境での実施モデル
+## 対象ファイル（すべて本リポに実在するパス）
 
-本環境に Managed Agents API は無いため、git レポジトリ `agents-share`（`{agent_global_home}` 配下）で手動実施する。「入力非破壊・レビュー後採用」は **論理単位ごとの commit ＋ ユーザーレビュー** で代替する（push はユーザー明示指示まで保留）。
+| ファイル | 役割 | SessionStart 注入 |
+|---|---|---|
+| `memory/active-context.md` | 現在の作業状態 | **全文注入**（最優先の剪定対象） |
+| `profile/resources.md` | リソース台帳 | 抽出注入 |
+| `profile/preferences.md` | 好み・要件 | 全文注入 |
+| `learnings/insights.md` | 累積知見 | **見出しのみ**注入 |
+| `memory/decisions.md` | 意思決定ログ | **非注入**（起動コストには影響しない） |
+| `memory/sessions/*.md` | セッションサマリー | 非注入（Mine フェーズの入力） |
 
-対象階層（毎セッション自動ロードされる順）:
+`CLAUDE.md` は毎ターン全文注入されるが**保護対象**であり、この手順では変更しない
+（soft cap 超過時の整理は管理者承認のうえ別途 PR で行う）。
 
-1. `AGENTS.md` — 世界のルール（最上位・home-manager 管理。`更新禁止`。dream の対象外、ただしルールの定義元として参照する）
-2. `MEMORY.md` — チーム共通知識
-3. `auto-memory/MEMORY.md`（索引）＋ `auto-memory/*.md`（関連時に想起）
-4. session-start で読む notes（`notes/ghq.md`, `notes/specs.md`）
-5. `projects/{project_dir_canonical}.md` — プロジェクト固有
-6. `notes/*.md`（on-demand）
+## 保存先の判断基準（これが本手順の核心）
 
-## 4 フェーズ手順
+各エントリを次のいずれかに振り分ける。**「念のためどこかに移す」は禁止**
+（肥大を別ファイルへ移すだけで、解決にならない）。
 
-1. **Mine（採掘）**: 直近セッションの transcript / 作業内容から、繰り返し出た指摘・確定した方針・新事実を抽出する。一回限りのデバッグメモは拾わない。
-2. **Consolidate（統合）**: 抽出物を既存記憶へマージ。相対日付（"昨日" 等）は**絶対日付に変換**。矛盾は最新の値で解決し古い記述を置換。存在しないファイル/関数/フラグを指す記述は除去（or 現存確認して更新）。
-3. **Dedup & Resolve（重複排除・矛盾解消）**: 階層をまたいだ重複を除去する。**最重要原則: 上位レイヤが定めるルールを下位で再掲しない。** 下位は重複を黙って消し、そのレイヤ固有の知見だけ残す（残し方は後述「成果ファイルの書き方」に従う）。矛盾が真にある場合はユーザーへ確認。
-4. **Prune & Index（剪定・索引化）**: `MEMORY.md` 系の索引は lean に保つ（目安 200 行未満、auto-memory/MEMORY.md は 1 ファイル 1 行フック）。冗長な節・完了済みで価値の無い記述を削除。**`MEMORY.md` の「notes 一覧」セクションを再生成して同期する**（notes は階層化され on-demand では発見されにくいため、常時ロードされる MEMORY.md に全パスを置く）:
+```
+未完了で、次の行動に必要
+  → memory/active-context.md に残す（次アクションを動詞で書く）
+
+将来の判断を拘束する決定
+  → memory/decisions.md へ「要点だけ」昇格（本文の丸ごとコピー禁止）
+
+複数タスクで再利用できる知見
+  → learnings/insights.md へ「要点だけ」昇格
+
+セッション経緯として memory/sessions/ に記録済み
+  → active-context 側は削除（sessions は遡及的に書き換えない）
+
+単なる完了報告・旧状態・PR 履歴・作業ログ
+  → 削除。履歴は git に委ねる
+```
+
+**アーカイブ用ファイル（`memory/archive/` 等）を新設しない。** 保存期間・削除条件・
+索引生成という新たな運用を生み、「アーカイブしたから整理済み」という検証済み風ラベルを
+再発させるため。
+
+## 手順
+
+1. **Mine（採掘）** — `memory/sessions/` の直近サマリーと `git log` から、剪定対象ファイルに
+   書かれている内容の現況を把握する。相対日付（"昨日" 等）は絶対日付へ変換する。
+2. **Verify（現況の実測）** — 「マージ待ち」「レビュー待ち」等の記述は**推測で判定しない**。
+   GitHub の open PR 一覧を実測し、既にマージ済みなら状態ドリフトとして解消する。
+   存在しないファイル・シンボルへの参照も実測で確認して除去する。
+3. **Classify（振り分け）** — 上記「保存先の判断基準」に従って全エントリを分類する。
+   分類結果は PR 本文に表として残す（監査可能にする）。
+   **必須: 埋もれた未解決作業の救出**。完了エントリの本文中に未解決項目が書かれている
+   ことが多い（2026-07-26 の初回剪定では、この検査で 7 件の取りこぼしを検出・回復した）。
+   剪定後に必ず次を実行し、削除行に残った未解決マーカーを1件ずつ現行の記載と突き合わせる:
 
    ```bash
-   cd {agent_global_home} && find notes -type f -name '*.md' | sort
+   git diff -- memory/active-context.md | grep '^-' \
+     | grep -nE '未完|未実施|要確認|要フォロー|残タスク|未検証|未調査|所在未確認'
    ```
 
-   出力で `MEMORY.md` のコードブロックを丸ごと置換する。notes の追加・移動・削除を行った dream では必須。
+   ヒットした各行について「現在も未解決 → 残す」「後続エントリで解決済み → 削除」を判定する。
+   判定せずに削除してはいけない。
+4. **Prune（剪定）** — active-context を現在情報だけに戻す。完了見出しはゼロにする。
+5. **Verify（機械検証）** — 下記「完了条件」のコマンドをすべて実行し、出力を PR 本文に貼る。
 
-## 重複排除の判定ルール
+## 完了条件（観測可能・すべて満たすまで完了としない）
 
-- 重複は常に「下位 → 上位」方向で発生する。**修正は下位レイヤ側**で行い、AGENTS.md（最上位・自己整合）は触らない。
-- 各情報は定義箇所を一つに保つ。上位が定めるルールは下位から単に消す（必要なら手順の所在だけを 1 句で指す。例: 「PR 本文は `notes/playbook/github-pr.md` に従う」）。
-- ディレクトリ構造・コミット運用・記憶貢献ルールなどの「世界のルール」は AGENTS.md が定める。notes/projects は固有情報のみ書く。
-- specs/（設計文書）はプロジェクト固有でルール重複の対象外。dream では原則触らない。
+```bash
+# 1. 閾値以下に戻っている（⑧検知は「行数超過 or バイト超過」で発火するため両方必要）
+wc -l memory/active-context.md   # <= 300
+wc -c memory/active-context.md   # <= 24576
 
-### 成果ファイルの書き方（重要）
+# 2. 現在ビューに完了エントリが残っていない（終了コード 1・出力なしが正）
+grep -n '^### ✅' memory/active-context.md
 
-判断のメタと経緯はこの playbook 側に置き、**成果ファイル（MEMORY.md / projects / notes）には書かない**。具体的に成果ファイルから除くもの:
+# 3. 本手順が参照するパスがすべて実在する（存在しないパスを必須入力にしない）
+for p in memory/active-context.md memory/decisions.md memory/sessions \
+         learnings/insights.md profile/resources.md profile/preferences.md; do
+  [ -e "$p" ] || echo "MISSING: $p"
+done   # 出力なしが正
 
-- 重複回避の注記（「これは X が定める、ここでは重複させない／再掲しない」等のメタ説明）。重複は黙って消すだけでよい。
-- 経緯・履歴（**Why:**、失敗談、「繰り返し外している」「同じ指摘を N 回受けた」、学習日・セッション ID、`feature による` 等）。
-- 結果として残すのは、現行で正しい知見・ルール・再現手順だけ。理由が行動を変える技術的因果（「A だと B が壊れるので C する」）は知見の一部として残してよいが、誰がいつ何を指摘したかは残さない。
+# 4. 保護ファイルを触っていない（出力に CLAUDE.md が出ないこと）
+git diff --name-only origin/main...HEAD
+```
 
-## チェックリスト
+さらに、残った各 `### 🔄` について次を PR 本文に列挙する（grep では判定できないため）:
+見出し / 現在も未完了である根拠 / 次アクション。「確認した」とだけ書かない。
 
-- [ ] 相対日付をすべて絶対日付へ変換した
-- [ ] 上位が定めるルールを下位から削った（重複回避の注記自体も残していない）
-- [ ] 成果ファイルから経緯・履歴（Why / 失敗談 / 再発回数 / 学習日 / セッション ID）を除いた
-- [ ] 矛盾を最新値で解決した（曖昧ならユーザー確認）
-- [ ] 存在しないファイル/シンボルへの参照を除去 or 現存確認した
-- [ ] 索引（MEMORY.md / auto-memory/MEMORY.md）が lean
-- [ ] `MEMORY.md` の「notes 一覧」を `find notes -type f -name '*.md' | sort` で再生成・同期した
-- [ ] 変更を論理単位ごとに commit し、ユーザーがレビュー可能（push は保留）
-- [ ] 採用前に出力をレビュー（dream 出力は hallucination 混入の懸念があるため鵜呑みにしない）
+## 承認モデル（誤読しやすいので明記する）
 
-## トリガー条件（いつ実施するか）
+- **剪定 PR の適用（マージ）にユーザーの承認が必要**。剪定は不可逆な削除を含み、
+  出力に hallucination が混入しうるため、必ず PR としてレビュー可能な形で出す。
+  直接 main へ反映しない。
+- これは「タスクの完了判定にユーザー承認が必要」という意味ではない。
+  **事実として完了しているか**と**破壊的な剪定を適用してよいか**は別の問題。
 
-- 大規模リファクタ直後（リネーム多数・フレームワーク移行・API 構造変更）— 古いエントリが混乱を増やすため最優先。
-- セッション数の蓄積時（本家デフォルト目安 24h かつ 5 セッション、実務的には 20〜30 セッションでノイズ化）。
-- ユーザーが「記憶の整理」「dream」と指示したとき。
+## トリガー条件
+
+- SessionStart の⑧肥大化検知が警告を出したとき（＝ 300 行 or 24KB 超過）
+- ユーザーが「記憶の整理」「dream」と指示したとき
+- 大規模リファクタ直後（リネーム多数・構造変更）— 古いエントリが混乱を増やすため
 
 ## 注意点
 
-- 入力非破壊が原則。本環境では作業を**別 commit に分離**し、気に入らなければ revert できる状態を保つ。
-- consolidation は fine-tune ではなく記憶の再編。モデルは変えない。
-- 出力が誤りを混入しうるため、**採用前レビュー必須**。
+- **入力非破壊**: 作業を論理単位ごとの commit に分離し、気に入らなければ revert できる状態を保つ。
+- **自動化しない**: 剪定は構文処理でなく意味処理。`### ✅` を機械削除するだけでも、完了
+  エントリ内の未解決の後続作業や、永続すべき設計判断を巻き添えで消す。ラベル自体がドリフト
+  している（`🔄` だが実際は完了済み）ケースが実在するため、ラベルを信頼する自動化は特に危険。
+  将来スクリプト化するとしても、最初に作るのは read-only の検査であり、`--fix` を持たせない。
+- **昇格先の肥大に注意**: `decisions.md` / `insights.md` へ昇格するのは要点のみ。
+  元本文の丸ごとコピーは剪定ではなく移動でしかない。
 
 ## 参考
 
-- [Dreams — Claude API Docs](platform.claude.com/docs/en/manage…)（公式。`managed-agents-2026-04-01` + `dreaming-2026-04-21` beta header、Opus 4.7 / Sonnet 4.6 ※記事当時の例示モデル名（現行モデルとは異なる）、最大 100 セッション、`instructions` 4096 文字）
-- [What Is Claude Dreaming? (MindStudio)](mindstudio.ai/blog/what-is-c…)
-- [Claude Code Dreams: Auto Dream guide (Supalaunch)](supalaunch.com/blog/claude-co…)
-- [Auto-dream mechanics (claudefa.st)](claudefa.st/blog/guide/mec…)
-- [grandamenium/dream-skill（4 フェーズ consolidation の OSS 再現）](github.com/grandamenium/d…)
-
----
-
-## 【template リポでの適用マッピング】
-
-上記は自作記憶システム（agents-share）向けの原文。本リポ（template およびその派生リポ）で
-「記憶の整理」「dream」と指示されたら、対象階層を以下に読み替えて同じ 4 フェーズを実施する。
-
-| 原文（agents-share） | 本リポでの対応物 |
-|---|---|
-| `AGENTS.md`（世界のルール・dream 対象外） | `CLAUDE.md`（コアルール。soft cap 200 行の運用ガイドラインに従い、経緯は learnings/ へ追い出す対象として**参照はする**） |
-| `MEMORY.md`（チーム共通知識） | `memory/active-context.md`（状態）＋ `memory/decisions.md`（決定記録） |
-| `auto-memory/*.md` | `learnings/insights.md`（累積知見） |
-| session-start で読む notes | `profile/preferences.md` / `profile/resources.md` |
-| `projects/*.md` | `projects/*/plan.md`（各案件の唯一の確定プラン） |
-| `notes/*.md`（on-demand） | `docs/*.md` |
-| notes 一覧の再生成コマンド | `find memory profile learnings docs -type f -name '*.md' \| sort` で索引同期（active-context.md に一覧節を持つ場合） |
-
-本リポ固有の注意:
-
-- `CLAUDE.md` は agents-share の AGENTS.md と違い**編集可能**だが、dream での修正方向は同じ
-  「下位（memory/ learnings/ docs/）側で重複を消す」を原則とし、CLAUDE.md 側は
-  300 行超の緊急整理時のみ触る。
-- `memory/sessions/*.md`（セッションサマリー）は Mine フェーズの入力。consolidation 後も
-  履歴として残す（成果ファイルではないので経緯排除ルールの対象外）。
-- push 保留の原則は本リポの Git ワークフロー（main 直接 push 禁止・PR 経由）と整合する。
-  dream の成果は専用ブランチ＋PR でレビューする。
+- 発想元は Anthropic Managed Agents の **Dreams**（記憶の consolidation を別 store として
+  生成し、レビューのうえ opt-in で採用する仕組み）。本リポには Managed Agents API が無いため、
+  「論理単位ごとの commit ＋ PR レビュー」で入力非破壊・採用前レビューを代替している。

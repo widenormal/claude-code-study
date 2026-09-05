@@ -156,12 +156,26 @@ fi
 
 # ──────────────────────────────────────────────
 # ⑧ 記憶ファイル肥大化検知：決定論のみ・LLM 呼び出しなし
-#   対象: memory/active-context.md, memory/decisions.md, learnings/insights.md（存在するもののみ）
+#   対象: **本スクリプトが SessionStart 注入に使うファイルだけ**（存在するもののみ）。
+#     この警告の目的は「起動時コンテキストの肥大＝毎セッションのトークン消費」を止めること
+#     なので、注入に一切使わないファイルを混ぜると警告の意味がぼやける。
+#     ※ memory/decisions.md は①〜⑪のどのブロックでも注入していないため対象外
+#       （参照性の観点での保守は必要になり得るが、起動コストの問題ではない）
+#   既知の限界（sol 検品 2026-07-26・P2 として記録）:
+#     判定はファイル全文の行数・バイト数で行うが、注入形態はファイルごとに違う。
+#       - memory/active-context.md / profile/preferences.md … 全文注入（判定＝実コストと一致）
+#       - profile/resources.md … awk 抽出のみ注入／learnings/insights.md … 見出しのみ注入
+#     後者2つは本文が増えても注入量は比例しないため、判定は**代理指標**（過剰警告寄り）。
+#     それでも対象に含めるのは、剪定する対象が抽出結果ではなくファイル本体であり、
+#     閾値を全ファイルで揃えた方が運用が単純なため。抽出結果の実測に変えるなら
+#     ①〜③で組み立てた変数（RESOURCES / LEARNINGS 等）を測る改修が別途必要。
+#     ※ per-user 形式（memory/active-context/<name>.md）は対象外のまま
+#       （decisions.md 2026-07-09 に既知の限界として記録済み）
 #   閾値: 行数 $BLOAT_LINES 超 または サイズ $BLOAT_BYTES バイト超
 #   超過ゼロなら MEMORY_BLOAT_LIST は空のまま → build_context で何も出力しない
 # ──────────────────────────────────────────────
 MEMORY_BLOAT_LIST=""
-for bloat_file in memory/active-context.md memory/decisions.md learnings/insights.md; do
+for bloat_file in memory/active-context.md profile/preferences.md profile/resources.md learnings/insights.md; do
   f="$PROJ/$bloat_file"
   if [ -f "$f" ]; then
     bloat_lines=$(wc -l < "$f")
@@ -281,9 +295,16 @@ build_context() {
     printf '\n\n=== Memory Bloat Check (肥大化検知) ===\n'
     printf '⚠ 以下の記憶ファイルが閾値（%s行 or %sKB）を超えています:\n' "$BLOAT_LINES" "$((BLOAT_BYTES / 1024))"
     printf '%s' "$MEMORY_BLOAT_LIST"
-    printf '記憶の整理（memory-dream）を推奨します。ユーザーに一度だけ提案してください:\n'
-    printf '「記憶ファイルが肥大化しています。memory-dream（4フェーズ consolidation）をサブエージェント（Sonnet 既定）に委譲して剪定PRを起案できます。実行しますか？」\n'
-    printf '承認されたら .claude/skills/memory-dream.md の手順に従い、剪定結果は必ず PR としてレビュー可能な形で出すこと（直接 main へ反映しない）。\n'
+    printf 'これらは SessionStart 注入に使われるため、超過分は起動時のトークン消費とノイズになります。\n'
+    printf '（active-context / preferences は全文注入。resources は抽出のみ・insights は見出しのみ注入のため、\n'
+    printf ' 行数・バイト数は実注入量の代理指標です。詳細と剪定の考え方は下記の手順書に記載。）\n'
+    printf '手順書 = .claude/skills/memory-dream.md（対象ファイル・保存先の判断基準・完了条件を規定）。\n'
+    printf '会話の流れ上そぐわない場合を除き、ユーザーに剪定を提案してください\n'
+    printf '（提案文例: 「記憶ファイルが閾値を超えています。memory-dream の手順で剪定PRを起案しますか？」）。\n'
+    printf 'この警告は閾値を下回るまで毎セッション出ます（フックは状態を持たないため抑止できません）。\n'
+    printf '直近で提案済み・見送り済みなら、再提案は控えて作業を進めて構いません。\n'
+    printf '承認されたら手順書に従い、剪定結果は必ず PR としてレビュー可能な形で出すこと（直接 main へ反映しない）。\n'
+    printf '※ 剪定は不可逆な削除を含むため、PR の適用（マージ）にはユーザーの承認が必要です。\n'
   fi
   if [ -n "$PLACEHOLDER_WARN" ]; then
     printf '\n\n=== Template Placeholder Check (未カスタマイズ検知) ===\n'
