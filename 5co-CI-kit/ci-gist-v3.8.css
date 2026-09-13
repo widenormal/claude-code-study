@@ -1,0 +1,45 @@
+/* ci-gist-v3.8.css — v3.8 追補（後方互換の追加のみ）
+   正典化した3点。いずれも複数案件のビルダーが同一値で自前定義していた＝ドリフトの回収。
+     1. .gist / .gist-k … 「このページの要点」（見出し直下の1〜2文・琥珀ラベル付き）
+     2. td.chl（汎用）  … 洞察が言及するデータセルの琥珀強調。v3.2 は table.sk 限定＋hex直書きだった
+     3. .wrapcell / .sho-h.lite … 表セルの折り返し・軽量小見出し
+   実測（2026-09-08）: WELLA ProHair 統合版・WELLA OPI ネイル統合版の2デッキが
+   .gist / .gist-k / .sho-h / td.chl / .wrapcell を同一値で再定義していた。
+   色は ci-charts.css の機能色トークン（--insight 系）のみを使う（新色を足さない）。 */
+
+/* ---- 1. このページの要点（gist） ------------------------------------------
+   使い方: 見出し（h2.title＋accent-bar）の直後に1つだけ置く。
+     <p class="gist"><span class="gist-k">このページの要点</span>本文（1〜2文）</p>
+   - 本文は「読者の問いへの答え」（COPY_GUIDE.md ルール1）を1〜2文で。分類名で終わらせない
+   - 1ページ1メッセージ（同ルール1の追補）と対で使う。要点が2文で書けないページは分割を検討する
+   - 「図の読み方:」（同ルール2）は gist の下に置く（順序＝見出し → 要点 → 図の読み方 → 本体） */
+.gist{font-size:13.5px; font-weight:700; line-height:1.45; margin:6px 0 2px; color:var(--ink);}
+/* .gist-t … 本文を1要素に確定させたいときに包む（任意・後方互換）。
+   `.gist` は開始タグが2つある要素（p + span.gist-k）なので、本文だけを差し替える
+   スクリプトがタグを正規表現で組み直すとラベルが消える（実インシデント・V3.2_FORMAT
+   「本文を差し替えるスクリプトの規則」）。包んでおけば差し替え対象が1要素に決まる。
+   見た目は本文のまま＝スタイルを足さない（包んでも包まなくても同じ表示）。 */
+.gist-t{font:inherit; color:inherit;}
+.gist-k{display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  color:var(--insight-ink); background:var(--insight); border:1px solid var(--insight-line);
+  border-radius:3px; padding:1px 7px; margin-right:8px; vertical-align:middle;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+
+/* ---- 2. 洞察強調（琥珀）の汎用化 -------------------------------------------
+   v3.2 は `table.sk td.chl` 限定かつ hex 直書き。sk クラスを使わない素の <table> で
+   効かず、案件側が同じ見た目をトークンで再定義していた。ここで汎用＋トークン化する。
+   意味にのみ使用・装飾禁止（V3.2_FORMAT.md 不変条件）。1ページの琥珀セルは
+   「そのページの洞察が実際に言及するセル」に限る。 */
+td.chl{background:var(--insight) !important; color:var(--insight-ink) !important; font-weight:700;
+  box-shadow:inset 0 0 0 1.5px var(--insight-line); border-radius:2px;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+
+/* ---- 3. 表セルの折り返し / 軽量小見出し ------------------------------------
+   .wrapcell … 長い説明列を含む表で、1列目だけ折り返さず他列を折り返す
+   .sho-h.lite … 罫なしの控えめな小見出し（正典 .sho-h は crystal の縦罫付き。
+                 表の直上など、罫があると重く見える箇所用） */
+.wrapcell table td{white-space:normal; line-height:1.3;}
+.wrapcell table th{white-space:normal;}
+.wrapcell table td:first-child, .wrapcell table th:first-child{white-space:nowrap;}
+.sho-h.lite{font-size:12px; font-weight:600; letter-spacing:.06em; color:var(--ink-60);
+  border-left:0; padding-left:0; margin:0 0 2px;}

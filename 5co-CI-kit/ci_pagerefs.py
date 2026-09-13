@@ -27,19 +27,32 @@ def _titles(slides, title_pat=r'<h2[^>]*>(.*?)</h2>'):
         out.append(_TAG.sub('', m.group(1)).strip() if m else '')
     return out
 
-def resolve_pagerefs(slides, title_pat=r'<h2[^>]*>(.*?)</h2>'):
-    """slides 内の {{PG:key}} をページ番号へ置換して返す。参照切れは SystemExit。"""
+def resolve_pagerefs(slides, title_pat=r'<h2[^>]*>(.*?)</h2>', marker=True):
+    """slides 内の {{PG:key}} をページ番号へ置換して返す。参照切れは SystemExit。
+
+    marker=True（既定・v3.8）: 解決した番号を `<span class="pgref">N</span>` で包む。
+      **なぜ**: 解決後の本文は「14ページ」という素の文字列になり、**トークンで解決したものと
+      人が直書きしたものが区別できない**。区別できないと slide_overflow_check.py の直書き警告が
+      正しい参照にも鳴り、警告が形骸化する（同じ理由で TITLE? 警告が無視されるようになった）。
+      span は表示に影響しない（CSS を持たないインライン要素）。
+    """
     titles=_titles(slides, title_pat)
     def find(key):
         for i,t in enumerate(titles):
             if key in t:
                 return i+1
         raise SystemExit(f"参照切れ: ページ参照キー『{key}』に一致するスライド見出しがありません")
-    return [re.sub(r'\{\{PG:([^}]+)\}\}', lambda m: str(find(m.group(1).strip())), s)
-            for s in slides]
+    def rep(m):
+        n=str(find(m.group(1).strip()))
+        return f'<span class="pgref">{n}</span>' if marker else n
+    return [re.sub(r'\{\{PG:([^}]+)\}\}', rep, s) for s in slides]
 
 if __name__=="__main__":
     # 自己テスト（引数なし）
     demo=['<section class="slide"><h2>OKR 進捗</h2>詳細 →P{{PG:ドリルダウン}}</section>',
           '<section class="slide"><h2>S級ブランド ドリルダウン</h2>本文</section>']
-    print('\n'.join(resolve_pagerefs(demo)))
+    out=resolve_pagerefs(demo)
+    print('\n'.join(out))
+    assert '<span class="pgref">2</span>' in out[0], "解決した参照に pgref マーカーが付いていない"
+    assert resolve_pagerefs(demo, marker=False)[0].endswith('→P2</section>'), "marker=False の後方互換が壊れている"
+    print("OK: pgref マーカーと後方互換")

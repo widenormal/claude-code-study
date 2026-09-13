@@ -1,0 +1,70 @@
+/* ci-lang-v3.8.css — 多言語版（英語版ほか）の級数スケール（2026-09-08 v3.8 新設）
+
+   なぜ要るか（実測・WELLA ProHair 統合デッキ英語版 2026-09-07）:
+     同じ内容の英語は日本語より 2〜3割長い。v3.7 の級数（h2.title 27px・--fs-note 11px・
+     table 14.5px）のままだと **23枚中20枚がはみ出した**。案件側は `en-fit` という
+     上書きCSSを自前定義して解消した（最終 0.80 倍）。多言語版は今後も出る（WELLA 本社向け）
+     のに正典に型が無いため、案件ごとに違う縮め方になる＝ドリフトになる。
+
+   **このCSSは日本語版には注入されない**（VERSION の format: ではなく lang: 行で宣言）。
+   ci_head.py --lang en のときだけ連結されるので、既存デッキの見た目は一切変わらない。
+
+   使い方（案件ビルダー）:
+     python3 ci_head.py --lang en                 # 既定 0.85 倍
+     python3 ci_head.py --lang en --lang-scale .8 # 実測で足りなければ段階的に下げる
+     import ci_head; ci_head.style_block(lang="en")
+   インラインの font-size は CSS では縮められない。ビルダー側で
+     ci_head.scale_inline_font_sizes(html, 0.85)
+   を通すこと（英語版で実際に必要だった）。
+
+   ここに無い級数でページが溢れる場合、**案件側でCSSを足さない**（それがドリフト）。
+   キットに追加する形で直す。 */
+
+/* ---- 1. スケール変数 ---------------------------------------------------------
+   ci_head.py --lang が `:root{--lang-scale:…}` を後段で焼き込む。
+   html[lang="en"] / .lang-en は、手組みHTMLでも効かせるための保険。 */
+:root{--lang-scale:1;}
+:root[lang="en"], .lang-en{--lang-scale:.85;}
+
+/* 正典の級数変数（ci-format-v3.2.css の値）をスケール後の値で再定義する。
+   本ファイルは連結順で後に来るため、こちらが勝つ。 */
+:root{
+  --fs-body: calc(18px * var(--lang-scale));
+  --fs-note: calc(11px * var(--lang-scale));
+  --fs-md:   calc(29px * var(--lang-scale));
+  --fs-lg:   calc(47px * var(--lang-scale));
+  --fs-xl:   calc(76px * var(--lang-scale));
+}
+
+/* ---- 2. 生px指定の本文系（変数を使っていない箇所） --------------------------
+   正典CSSは font-size を px 直書きしている箇所が多く、変数の再定義だけでは縮まない。
+   **文字を運ぶ主な要素**をここで一括してスケールする（枠・余白は触らない＝レイアウトは不変）。 */
+/* 本文の基準は body{font-size:var(--fs-body)}（正典）が拾うので、ここでは再指定しない
+   （.slide に font-size を足すと、正典側の個別指定を上書きしてしまう）。 */
+h2.title{font-size:calc(27px * var(--lang-scale));}
+.lead{font-size:calc(21px * var(--lang-scale));}
+.kicker{font-size:calc(13px * var(--lang-scale));}
+.sub{font-size:calc(13px * var(--lang-scale));}
+.h3{font-size:calc(16px * var(--lang-scale));}
+.sho-lead{font-size:calc(16px * var(--lang-scale));}
+.sho-h{font-size:calc(13px * var(--lang-scale));}
+ul.clean li{font-size:calc(13px * var(--lang-scale));}
+.gist{font-size:calc(13.5px * var(--lang-scale));}
+.gist-k{font-size:calc(10.5px * var(--lang-scale));}
+.kpi .v{font-size:calc(42px * var(--lang-scale));}
+.kpi .v small{font-size:calc(18px * var(--lang-scale));}
+.kpi .l{font-size:calc(12.5px * var(--lang-scale));}
+table.sk{font-size:calc(10px * var(--lang-scale));}
+table.sk.skfillA td, table.sk.skfillA th{font-size:calc(10.5px * var(--lang-scale));}
+table.sk.skfillB td, table.sk.skfillB th{font-size:calc(11px * var(--lang-scale));}
+
+/* ---- 3. 表セルの折り返しは「空白位置のみ」 ------------------------------------
+   案件側が overflow-wrap:anywhere を入れると、英語の長い語は折れるが
+   **「2.0」「1,715」のような数値も途中で折れる**（実測で発生）。数値の途中改行は
+   読み違いの原因になるので、折り返しは語間だけに限定する。 */
+.slide td, .slide th{overflow-wrap:normal; word-break:normal; hyphens:auto;}
+.slide td, .slide th{-webkit-hyphens:auto;}
+
+/* ---- 4. 見出しの行間 ---------------------------------------------------------
+   欧文は和文より行間が空いて見えるため、見出しだけ詰める（本文は可読性優先で触らない）。 */
+:root[lang="en"] h2.title, .lang-en h2.title{line-height:1.28;}

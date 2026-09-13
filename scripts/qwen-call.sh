@@ -4,7 +4,7 @@
 #       機密情報を含むテキストの下ごしらえなど。
 #
 # 認証不要（ローカル動作）。Ollama サーバが起動している必要がある。
-# 既定モデル: qwen3.5:7b-instruct（インストール手順は SessionStart フックで自動）
+# 既定モデル: scripts/llm-models.conf の QWEN_DEFAULT_MODEL（env QWEN_MODEL で上書き可）
 #
 # 使い方:
 #   bash scripts/qwen-call.sh "この日本語を 50 字に要約して: ..."

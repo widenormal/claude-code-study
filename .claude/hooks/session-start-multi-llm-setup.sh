@@ -4,6 +4,7 @@
 # 「ローカル無料の手足（Qwen）」を確実に動作可能にしておく。
 #
 # 動作（すべて best effort、失敗しても exit 0）:
+#   0. qwen ルートを使う設定か判定。使わないなら何も起動せず抜ける
 #   1. ollama CLI 未インストールなら導入（Linux: curl, macOS: brew）
 #   2. Ollama サーバ未起動ならバックグラウンド起動
 #   3. QWEN_MODEL（既定 qwen3.5:7b-instruct）未取得なら pull（バックグラウンド）
@@ -18,6 +19,19 @@ OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
 SETUP_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/claude-template-setup"
 OLLAMA_MARKER="$SETUP_CACHE_DIR/ollama-installed.ok"
 mkdir -p "$SETUP_CACHE_DIR" 2>/dev/null || true
+
+# --- 0. 起動要否の判定（2026-08-13 追加）---
+# qwen ルートに処理が流れるのは ECO_MODE=1 / DRIVE_CONTEXT=1 のときだけ
+# （分岐の実体 = scripts/llm-router.sh。scripts/qwen-call.sh はサーバを自動起動しない）。
+# それ以外で ollama serve を起こすと、一度も使われないまま常駐し続ける
+# ——本番 Mac mini で 18 日間・CPU 11 分の常駐を実測（2026-08-13 の残留プロセス調査）。
+# 常駐させたい運用なら .claude/settings.local.json の env に ECO_MODE=1 を置く。
+if [ "${ECO_MODE:-0}" != "1" ] && [ "${DRIVE_CONTEXT:-0}" != "1" ]; then
+  log "ECO_MODE=0 / DRIVE_CONTEXT=0 のため ollama の自動起動をスキップ（qwen ルート未使用）"
+  log "qwen を使うときは ECO_MODE=1 を設定するか、手動で 'ollama serve' を起動してください"
+  log "Drive 共有フォルダ操作時は eco-mode-drive.sh が自動誘導"
+  exit 0
+fi
 
 # キャッシュマーカーが ollama 実体と整合していれば version 起動を省略する。
 ollama_marker_valid() {
@@ -108,7 +122,7 @@ fi
 if [ "${ECO_MODE:-0}" = "1" ]; then
   log "ECO_MODE=1: 軽処理は qwen/haiku ルートに自動振り分け"
 else
-  log "ECO_MODE=0 (通常モード)。Drive 共有フォルダ操作時は eco-mode-drive.sh が自動誘導"
+  log "DRIVE_CONTEXT=1 のため起動（ECO_MODE=0）。Drive 共有フォルダ操作時は eco-mode-drive.sh が自動誘導"
 fi
 
 exit 0
