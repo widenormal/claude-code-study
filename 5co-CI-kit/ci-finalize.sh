@@ -23,6 +23,7 @@ H2P="$REPO_ROOT/scripts/html_to_pptx.py"
 OVF="$SELF_DIR/slide_overflow_check.py"
 OVL="$SELF_DIR/check_text_overlap.py"
 NEG="$SELF_DIR/graph_node_edge_check.py"
+SVGL="$SELF_DIR/svg_label_check.py"
 PARITY="$REPO_ROOT/scripts/check-slide-ci-parity.py"
 
 say(){ printf '%s\n' "$*"; }
@@ -98,6 +99,14 @@ if [ -f "$NEG" ] && command -v python3 >/dev/null 2>&1; then
   say "▶ ノード・エッジ図検査（gate）"
   python3 "$NEG" "$SRC" 2>&1 | sed 's/^/  /'
   [ "${PIPESTATUS[0]}" -eq 0 ] || die "ノード・エッジ図検査 NG（ノードの重なり/浮いた矢印。グリッド座標系＝V3.2_FORMAT.md「ノード・エッジ型グラフ図」に従い修正してから再実行）"
+fi
+
+# ---- 警告: SVG図版のラベル検査（DOM検査の死角＝図の中の文字の重なり・切れ・地色同色） ----
+#   既存デッキに未修正のものが残るため、当面は警告のみ（--warn-only で終了コードを0に固定）。
+#   新規・改訂したページで出たら必ず直す。
+if [ -f "$SVGL" ] && command -v python3 >/dev/null 2>&1; then
+  say "▶ SVG図版ラベル検査（warn）"
+  python3 "$SVGL" "$SRC" --warn-only 2>&1 | sed 's/^/  /'
 fi
 
 # ---- ゲート: CIトークン整合検査（廃止トークン --navy/--powder・旧hex・Georgia混入を検出） ----

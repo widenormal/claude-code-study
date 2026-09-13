@@ -31,6 +31,8 @@
   心拍ファイルが無い環境（git リポ直下等）はこの確認は不要。
 - **0からCSSを書かない**。現行フォーマットのスタイルに**中身（文言・数値）だけ差し替える**。
   型仕様は `V3.2_FORMAT.md`（8型）、文言は `COPY_GUIDE.md`、検査は `slide_overflow_check.py`。
+- **定例会資料は生成前に入力ゲート**（Observe/Orient のデータ欠損チェック→欠損アラート）も通す
+  （正 = git `docs/slide-process-ooda.md`「入力ゲートとアラート」。欠損の推測・ダミー補完禁止）。
 - **v3.2 系の書体（V3.1 タイポ）**: 本文＝ゴシック（Hiragino Sans）、表紙・章扉・見出し・欧文ラベルのみセリフ。
   `ci-format-v3.2.css` の `v31-typography` ブロックがこれを担う（詳細＝`SLIDE_DESIGN_GUIDELINES.md` §3）。
 - `5co_slide_template.html`（週次14枚・v2系雛形＝本文明朝）は**週次ベース資料専用の残置雛形**。

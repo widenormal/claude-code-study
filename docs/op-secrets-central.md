@@ -19,6 +19,8 @@ op:// ID 参照テンプレ（非 secret。解決済みの secret 値は含ま�
 
 - **真実源**: 1Password vault `claude-code-secrets`。値はここだけに存在する。
 - **認証**: `OP_SERVICE_ACCOUNT_TOKEN`。CI は GitHub Actions Secrets、ローカルは env / launchd 経由。
+  個人アカウント（デスクトップアプリ＋生体認証）経路は ssh / cron / バックグラウンドでは使えない
+  → 「[対話環境と非対話環境の違い](#対話環境と非対話環境の違い重要)」節。
 - **参照は item ID**: R7 のとおり item title に括弧 `(` があると `op read`/`op run` が
   `invalid character` で失敗する。そこで人間は title で書き、生成器が **一意な item ID** に解決する。
 
@@ -85,6 +87,51 @@ GEMINI_API_KEY      | Gemini API Key (Template) | credential
   （既存 `setup-op.sh` が `~/.search-api-env` 等 `$HOME` に書くのと同方針）。
 - 非 git 作業環境（Drive フォルダ等）では `.github/workflows/op-secrets.yml` は機能しない。
   R8 のとおり `scripts/strip-non-git.sh` で除去される。
+
+### 対話環境と非対話環境の違い（重要）
+
+op CLI には認証経路が2つある。**どちらを使っているかで、非対話環境での挙動が変わる。**
+
+| 経路 | 認証 | 対話ターミナル | ssh / cron / launchd / バックグラウンド |
+|---|---|---|---|
+| 個人アカウント（デスクトップアプリ連携） | 生体認証・マスターパスワード | ✅ 動く | ❌ **承認ダイアログを押せずハング／authorization timeout** |
+| **サービスアカウント（`OP_SERVICE_ACCOUNT_TOKEN`）** | トークン | ✅ 動く | ✅ **動く** |
+
+**非対話で op を叩く環境には、必ずサービスアカウントトークンを配ること。**
+共有 Mac・CI・夜間バッチ・エージェントのバックグラウンドジョブがこれに該当する。
+
+トークンがあれば `.claude/scripts/setup-op.sh` が op CLI の導入からキーの永続化まで自動で行う
+（トークンが無ければ黙って `exit 0` する設計なので、未配布の環境では何も起きない）。
+サービスアカウント使用時は `OP_ACCOUNT` の指定は不要。
+
+#### 症状と切り分け
+
+| 症状 | 原因 |
+|---|---|
+| `op whoami` → `account is not signed in` かつ `${#OP_SERVICE_ACCOUNT_TOKEN}` が 0 | トークン未配布。個人アカウント経路にフォールバックしている |
+| `op read` が無反応のまま数十秒経過 | 承認ダイアログが出ているが、押せる人がいない |
+| `authorization timeout` | 同上（タイムアウトした） |
+| キーは設定されているのに API が 401 | 下記の「失敗の握りつぶし」 |
+
+実測（2026-09-04〜05・共有 Mac）＝ssh 越しの `op whoami` は `account is not signed in`、
+`echo ${#OP_SERVICE_ACCOUNT_TOKEN}` は `0`、`op read` は16秒待って応答なし（強制終了するまでハング）。
+人が Touch ID を押すと成功する＝**手順の誤りではなく認証経路の選択**が原因。
+
+#### 失敗の握りつぶしを避ける
+
+次の書き方はエラーを捨てるため、認証が通らないと**空文字が入るだけで気づけない**。
+
+```bash
+# 悪い例：401 の原因が分からなくなる
+export SOME_API_KEY="$(op read 'op://vault/item/credential' 2>/dev/null)"
+```
+
+シェルの起動ファイルで `op read` を直接呼ぶのも避ける。承認待ちでシェル自体が固まる。
+キーが要るコマンドだけ `scripts/op-run.sh` 経由で実行するか、`setup-op.sh` に任せる。
+
+```bash
+bash scripts/op-run.sh -- python3 my_task.py
+```
 
 ### ローテーション / 失効
 
