@@ -32,6 +32,13 @@ ci_head.py — 正典CSS連結の唯一の標準方式（共通HEAD）
   python3 5co-CI-kit/ci_head.py --cover-ci # 表紙CIコンセプトブロック（.cover-ci・全表紙必須）
   python3 5co-CI-kit/ci_head.py --lang en  # 英語版（多言語版）の級数スケールを連結（既定0.85倍）
   python3 5co-CI-kit/ci_head.py --lang en --lang-scale 0.8   # 実測で足りなければ段階的に下げる
+  python3 5co-CI-kit/ci_head.py --interactive  # 動く資料（根拠パネル・1枚1操作・組み上がり）を連結（v3.9）
+
+動く資料（v3.9・任意）:
+  会議で「その内訳は？」に、押せば根拠が開く資料で答えるための層。VERSION の interactive: 行が
+  宣言する CSS＋JS を、--interactive（Python からは style_block(interactive=True)）のときだけ
+  <style>／<script> として足す。**付けない出力は v3.8 と1バイトも変わらない**。
+  書き方と6構造→操作の対応は V3.2_FORMAT.md「動く資料」、見本は python3 ci_interactive.py --demo。
 
 多言語版（v3.8・B-8）:
   英語は同じ内容でも和文より2〜3割長く、v3.7 の級数のままでは英語版が 23枚中20枚はみ出した。
@@ -147,11 +154,44 @@ def scale_inline_font_sizes(html: str, scale: float) -> str:
     return "".join(out)
 
 
-def style_block(lang: str = "ja", scale: float = None) -> str:
+# ---------------------------------------------------------------- 動く資料（v3.9・任意）
+def interactive_files() -> list:
+    """VERSION の interactive: 行が宣言する CSS / JS（宣言順・kit相対）。無ければ空リスト。"""
+    m = re.search(r"^interactive:\s*(.+)$", _version_text(), re.MULTILINE)
+    if not m:
+        return []
+    names = re.findall(r"[\w][\w.-]*\.(?:css|js)", m.group(1))
+    missing = [n for n in names if not (KIT / n).exists()]
+    if missing:
+        raise FileNotFoundError(
+            f"VERSION 宣言の動く資料ファイルが kit に見つかりません: {', '.join(missing)}（kit コピーが不完全）"
+        )
+    return names
+
+
+def interactive_block() -> str:
+    """動く資料の <style>＋<script>。VERSION に interactive: 行が無ければ ValueError（黙って静的にしない）。"""
+    names = interactive_files()
+    css = [n for n in names if n.endswith(".css")]
+    js = [n for n in names if n.endswith(".js")]
+    if not css or not js:
+        raise ValueError("VERSION の interactive: 行に CSS と JS の両方を宣言してください")
+    tag = version_tag()
+    css_body = "\n\n".join(f"/* ==== {n}（正典 5co-CI-kit・編集禁止） ==== */\n" + (KIT / n).read_text(encoding="utf-8") for n in css)
+    js_body = "\n\n".join(f"/* ==== {n}（正典 5co-CI-kit・編集禁止） ==== */\n" + (KIT / n).read_text(encoding="utf-8") for n in js)
+    if re.search(r"</script", js_body, re.I) or re.search(r"</style", css_body, re.I):
+        # コメント内でも閉じタグがあると HTML パーサがそこで <script>/<style> を閉じ、JS 全体が壊れる
+        raise ValueError("動く資料の CSS/JS に </script> か </style> が含まれています（コメント内も不可）")
+    return (f"<style>\n/* 5co-CI ci_head {tag} interactive — {' + '.join(css)} */\n{css_body}\n</style>\n"
+            f"<script>\n/* 5co-CI ci_head {tag} interactive — {' + '.join(js)} */\n{js_body}\n</script>")
+
+
+def style_block(lang: str = "ja", scale: float = None, interactive: bool = False) -> str:
     """HEADに挿入する <style> ブロック。先頭の版スタンプが ci_head 経由の証跡になる。
 
     lang を指定すると多言語CSS（VERSION の lang: 行）を末尾に連結する。
-    既定（ja）の出力は v3.7 以前と1バイトも変わらない。
+    interactive=True のときだけ、動く資料の <style>＋<script> を後ろに足す（v3.9）。
+    既定（ja・interactive=False）の出力は v3.7 以前と1バイトも変わらない。
     """
     tag = version_tag()
     files = " + ".join(css_files())
@@ -163,7 +203,8 @@ def style_block(lang: str = "ja", scale: float = None) -> str:
         f"   正典連結（5co-CI-kit/ci_head.py 生成・手編集禁止・CSSコピー/inline再実装禁止） */"
     )
     body = head_css() + (f"\n\n{extra}" if extra else "")
-    return f"<style>\n{stamp}\n{body}\n</style>"
+    out = f"<style>\n{stamp}\n{body}\n</style>"
+    return out + ("\n" + interactive_block() if interactive else "")
 
 
 # ---------------------------------------------------------------- 表紙CIコンセプト（正典・単一情報源）
@@ -201,10 +242,12 @@ def main(argv):
     try:
         lang = _opt(argv, "--lang", str, "ja")
         scale = _opt(argv, "--lang-scale", float, None)
+        inter = "--interactive" in argv
         if "--version" in argv:
             print(version_tag())
         elif "--files" in argv:
             names = css_files() + ([lang_css_file()] if lang != "ja" and lang_css_file() else [])
+            names += interactive_files() if inter else []
             print("\n".join(names))
         elif "--cover-ci" in argv:
             print(cover_ci_block())
@@ -212,7 +255,7 @@ def main(argv):
             extra = lang_css(lang, scale)
             print(head_css() + (f"\n\n{extra}" if extra else ""))
         else:
-            print(style_block(lang, scale))
+            print(style_block(lang, scale, inter))
         return 0
     except (FileNotFoundError, ValueError) as e:
         print(f"NG: {e}", file=sys.stderr)
