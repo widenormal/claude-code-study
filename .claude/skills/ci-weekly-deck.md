@@ -42,6 +42,14 @@
    - 構造が違うクライアントは、近い方を複製し「顧客ごとに書き換える領域」を作り替える
 4. ダミーで生成 → はみ出し検査 → 実データ抽出（`extract_deck_data.py`）→ 差し替え → 差異チェック → Drive配置
 
+> **図は既定で使う（v3.10・指示が無くても必須）**：本文スライドには原則すべて、フレームワーク図・グラフか
+> イラスト（`5co-CI-kit/FIGURES_GUIDE.md`）を1つ置く。表が主役の定例ページは、表の下にイラストかミニ図を添えるか、
+> 表だけで足りる付録ページに `data-fig-exempt="理由"` を付ける（ビルダーの `header()` 等に属性を渡す）。
+> 仕上げ前に `python3 5co-CI-kit/ci_figs.py coverage <deck>` を OK にする（`ci-finalize.sh` は FIG? で止まる）。
+> **ビルダーは生成の最後に自動で図を添える**（`build_deck.py`・`build_wella_deck.py` → `ci_v2_lib.add_autofigs` →
+> `ci_figs.autofig`）：図の無いページの表（数値の列→横棒）・箇条書き（対応図・流れ・一覧）から作る。表も箇条書きも無い
+> ページだけが FIG? に残る。重要な回は出力オプション④（マルチエージェント）で図を仕上げ直す。
+
 > **図の型は `framework-recommend` で広げる（標準ステップ）**：本文スライドを設計するとき、その
 > スライドの「言いたいこと」を `python3 scripts/framework_recommend.py "<意図>"` に渡し、内容に合う図
 > ＋『未経験かものフレームワーク図（発見枠）』を提示する。作り手が知っている型だけに寄らせない。
@@ -51,6 +59,21 @@
 > WELLA＝`build_wella_deck.py`＋`定例用`/`提出用_カテゴリ別`/`定例会用` 系（月次・OPI/RH）。
 
 ## 実行手順
+
+### 出力オプションの確認（作成依頼のたび・最初に1回）
+
+HTML は常に作る。**動く資料（押すと根拠が開く）・PDF・PPTX は任意**（5co-CI-kit v3.9・2026-09-27 制定）。
+**既定は HTML のみ**（2026-09-28〜）。PDF は下の質問で選ばれたときだけ出す。
+作り始める前に AskUserQuestion で1回だけ聞き（multiSelect）、答えを記録する：
+
+```bash
+python3 5co-CI-kit/ci_options.py write output/週次デッキ.html --interactive|--no-interactive --pdf|--no-pdf --pptx|--no-pptx
+```
+
+- 依頼文で指定済み・同じデッキで決定済み・`<デッキ名>.ci-options.json` が既にある場合は聞かない
+- 動く資料を選んだら `ci_head.style_block(interactive=True)` で組み、部品は `5co-CI-kit/ci_interactive.py`
+  （規定＝`V3.2_FORMAT.md`「動く資料」）。PDF・PPTX は `ci-finalize.sh` が ci-options.json を読んで出し分ける
+- Claude Code ではフック（`.claude/scripts/ci-slide-options-nudge.sh`）が作成依頼の時点で質問を促す
 
 ### 0. 設定（顧客ごと・初回のみ）
 
@@ -111,7 +134,7 @@ python3 scripts/extract_deck_data.py   # → deck_data.json（FORMATTED_VALUE）
 
 ```bash
 python3 scripts/build_deck.py          # → output HTML（まずダミーで雛形確認）
-python3 scripts/build_deck.py --pdf    # Chrome --headless でA4横PDFも出力
+python3 scripts/build_deck.py --pdf    # Chrome --headless でA4横PDFも出力（PDF を選んだときだけ）
 ```
 
 `build_deck.py` の **「ここから顧客ごとに書き換える領域」** を `deck_data.json` の実値・実ブランド・
@@ -125,6 +148,14 @@ python3 scripts/build_deck.py --pdf    # Chrome --headless でA4横PDFも出力
 python3 ../../../5co-CI-kit/slide_overflow_check.py output/週次デッキ.html
 ```
 
+**図の無いページ検査（必須・v3.10）**:
+
+```bash
+python3 ../../../5co-CI-kit/ci_figs.py coverage output/週次デッキ.html
+```
+
+`FIG?` が出たページは、フレームワーク図・グラフ（`ci_frameworks.py`）かイラスト（`ci_figs.py inject` で `figs/<ページID>.html` を差し込む）を足すか、表だけで足りる付録なら `data-fig-exempt="理由"` を付ける。
+
 `OVERFLOW` が出たら行数・所見量を詰めて A4 内に収める（`LOGO>64px:102px` はヘッダ右上ロックアップの
 意図的拡大で、元デッキと同じ・許容）。
 
@@ -135,7 +166,7 @@ python3 ../../../5co-CI-kit/slide_overflow_check.py output/週次デッキ.html
 
 ### 3.5 PPTX出力（任意・追加出力）
 
-既定の配布形式は **PDF / Googleスライド** のまま。PowerPoint 形式が要る相手には、Step 2 で出した
+配布形式は冒頭の「出力オプションの確認」で選んだもの（PDF・PPTX とも任意）。PowerPoint 形式が要る相手には、Step 2 で出した
 **A4横PDF** をそのまま画像ベース PPTX に変換できる（CI完全忠実・決定論的）。
 
 ```bash
@@ -204,4 +235,5 @@ PPTX を配る場合は Step 3.5 の出力を同フォルダへ。
 - `config.json`・実スプレッドシートID・OAuthトークン・実顧客ロゴ・POS生データをコミット／外部送信する
 - POS等の最高機密の生データ・ASIN・個別売上をスライドに載せる（**集約値のみ**）
 - 原本との差異チェックを飛ばして共有する
+- 図の無い本文ページ（FIG?）を理由なく残して配布する
 - 顧客固有の値・ブランド名・所見を `ci_v2_lib.py`（共通ライブラリ）側に書く
