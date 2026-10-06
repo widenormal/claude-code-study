@@ -29,9 +29,17 @@ ci_head.py — 正典CSS連結の唯一の標準方式（共通HEAD）
   python3 5co-CI-kit/ci_head.py --css      # 生CSSのみ（<style>タグなし）
   python3 5co-CI-kit/ci_head.py --files    # 連結対象ファイル一覧
   python3 5co-CI-kit/ci_head.py --version  # 現行版タグ（例: v3.3）
+  python3 5co-CI-kit/ci_head.py --footer-stack  # フッター版スタック1行（CI / Shelpha / Template）
   python3 5co-CI-kit/ci_head.py --cover-ci # 表紙CIコンセプトブロック（.cover-ci・全表紙必須）
   python3 5co-CI-kit/ci_head.py --lang en  # 英語版（多言語版）の級数スケールを連結（既定0.85倍）
   python3 5co-CI-kit/ci_head.py --lang en --lang-scale 0.8   # 実測で足りなければ段階的に下げる
+  python3 5co-CI-kit/ci_head.py --interactive  # 動く資料（根拠パネル・1枚1操作・組み上がり）を連結（v3.9）
+
+動く資料（v3.9・任意）:
+  会議で「その内訳は？」に、押せば根拠が開く資料で答えるための層。VERSION の interactive: 行が
+  宣言する CSS＋JS を、--interactive（Python からは style_block(interactive=True)）のときだけ
+  <style>／<script> として足す。**付けない出力は v3.8 と1バイトも変わらない**。
+  書き方と6構造→操作の対応は V3.2_FORMAT.md「動く資料」、見本は python3 ci_interactive.py --demo。
 
 多言語版（v3.8・B-8）:
   英語は同じ内容でも和文より2〜3割長く、v3.7 の級数のままでは英語版が 23枚中20枚はみ出した。
@@ -86,6 +94,77 @@ def head_css() -> str:
         body = (KIT / name).read_text(encoding="utf-8")
         parts.append(f"/* ==== {name}（正典 5co-CI-kit・編集禁止） ==== */\n{body}")
     return "\n\n".join(parts)
+
+
+# ---------------------------------------------------------------- フッター版スタック（2026-10-06）
+# コピーライトの左側に CIキット版・Shelpha版・Template版を出す（SLIDE_DESIGN_GUIDELINES §5.5）。
+# 実値はここで解決し、style_block / --css の末尾で .slide::before の content を上書きする。
+# 静的CSS単体（ci_head 未経由）は copyright のみ＝意図的フォールバック。
+
+
+def shelpha_version() -> str:
+    """5co-CI-kit/SHELPHA_VERSION 先頭の非コメント行。無ければ／空なら '—'。"""
+    vf = KIT / "SHELPHA_VERSION"
+    if not vf.is_file():
+        return "—"
+    for line in vf.read_text(encoding="utf-8").splitlines():
+        s = line.strip()
+        if not s or s.startswith("#"):
+            continue
+        return s
+    return "—"
+
+
+def template_version() -> str:
+    """template-manifest.json の template_version。無ければ版マーカー、それも無ければ '—'。"""
+    import json
+
+    for base in [KIT.parent, *KIT.parent.parents]:
+        mf = base / "template-manifest.json"
+        if mf.is_file():
+            try:
+                v = json.loads(mf.read_text(encoding="utf-8")).get("template_version")
+                if v:
+                    return str(v).strip()
+            except (json.JSONDecodeError, OSError):
+                pass
+        marker = base / ".claude" / ".template-state.json"
+        if marker.is_file():
+            try:
+                v = json.loads(marker.read_text(encoding="utf-8")).get("template_version")
+                if v:
+                    return str(v).strip()
+            except (json.JSONDecodeError, OSError):
+                pass
+        if (base / ".git").exists() or base == base.parent:
+            break
+    return "—"
+
+
+def footer_stack_label() -> str:
+    """フッター左に出す版スタック1行（例: 'CI v3.10 · Shelpha — · Template 2026.10.1'）。"""
+    return f"CI {version_tag()} · Shelpha {shelpha_version()} · Template {template_version()}"
+
+
+def footer_stack_css() -> str:
+    """版スタック＋copyright を .slide::before に焼き込む上書きCSS。"""
+    label = footer_stack_label()
+    if '"' in label or "\\" in label or "\n" in label:
+        raise ValueError(f"footer stack label に CSS content で使えない文字: {label!r}")
+    copy = "© 2026 5co. All rights reserved."
+    return "\n".join([
+        "/* ==== footer stack（ci_head 注入・§5.5） ==== */",
+        f'.slide::before{{content:"{label}  ·  {copy}"; position:absolute; left:36px; bottom:15px;'
+        f' font-family:var(--serif-en); font-size:10px; letter-spacing:.04em; color:var(--ink-60);}}',
+        ".slide:has(.period)::before,.slide:has(.ci-stack)::before{left:auto; right:230px;}",
+        ".slide.dark::before{color:rgba(195,215,238,.65);}",
+    ])
+
+
+def footer_stack_html() -> str:
+    """任意: 各 .slide に置く HTML 版（CSS content 注入と併用しない）。"""
+    return f'<div class="ci-stack" aria-hidden="true">{footer_stack_label()}</div>'
+
 
 
 # ---------------------------------------------------------------- 多言語版の級数（v3.8・B-8）
@@ -147,11 +226,44 @@ def scale_inline_font_sizes(html: str, scale: float) -> str:
     return "".join(out)
 
 
-def style_block(lang: str = "ja", scale: float = None) -> str:
+# ---------------------------------------------------------------- 動く資料（v3.9・任意）
+def interactive_files() -> list:
+    """VERSION の interactive: 行が宣言する CSS / JS（宣言順・kit相対）。無ければ空リスト。"""
+    m = re.search(r"^interactive:\s*(.+)$", _version_text(), re.MULTILINE)
+    if not m:
+        return []
+    names = re.findall(r"[\w][\w.-]*\.(?:css|js)", m.group(1))
+    missing = [n for n in names if not (KIT / n).exists()]
+    if missing:
+        raise FileNotFoundError(
+            f"VERSION 宣言の動く資料ファイルが kit に見つかりません: {', '.join(missing)}（kit コピーが不完全）"
+        )
+    return names
+
+
+def interactive_block() -> str:
+    """動く資料の <style>＋<script>。VERSION に interactive: 行が無ければ ValueError（黙って静的にしない）。"""
+    names = interactive_files()
+    css = [n for n in names if n.endswith(".css")]
+    js = [n for n in names if n.endswith(".js")]
+    if not css or not js:
+        raise ValueError("VERSION の interactive: 行に CSS と JS の両方を宣言してください")
+    tag = version_tag()
+    css_body = "\n\n".join(f"/* ==== {n}（正典 5co-CI-kit・編集禁止） ==== */\n" + (KIT / n).read_text(encoding="utf-8") for n in css)
+    js_body = "\n\n".join(f"/* ==== {n}（正典 5co-CI-kit・編集禁止） ==== */\n" + (KIT / n).read_text(encoding="utf-8") for n in js)
+    if re.search(r"</script", js_body, re.I) or re.search(r"</style", css_body, re.I):
+        # コメント内でも閉じタグがあると HTML パーサがそこで <script>/<style> を閉じ、JS 全体が壊れる
+        raise ValueError("動く資料の CSS/JS に </script> か </style> が含まれています（コメント内も不可）")
+    return (f"<style>\n/* 5co-CI ci_head {tag} interactive — {' + '.join(css)} */\n{css_body}\n</style>\n"
+            f"<script>\n/* 5co-CI ci_head {tag} interactive — {' + '.join(js)} */\n{js_body}\n</script>")
+
+
+def style_block(lang: str = "ja", scale: float = None, interactive: bool = False) -> str:
     """HEADに挿入する <style> ブロック。先頭の版スタンプが ci_head 経由の証跡になる。
 
     lang を指定すると多言語CSS（VERSION の lang: 行）を末尾に連結する。
-    既定（ja）の出力は v3.7 以前と1バイトも変わらない。
+    interactive=True のときだけ、動く資料の <style>＋<script> を後ろに足す（v3.9）。
+    末尾にフッター版スタック（CI / Shelpha / Template）を常に注入する（2026-10-06・§5.5）。
     """
     tag = version_tag()
     files = " + ".join(css_files())
@@ -162,8 +274,9 @@ def style_block(lang: str = "ja", scale: float = None) -> str:
         f"/* 5co-CI ci_head {tag} — {files}\n"
         f"   正典連結（5co-CI-kit/ci_head.py 生成・手編集禁止・CSSコピー/inline再実装禁止） */"
     )
-    body = head_css() + (f"\n\n{extra}" if extra else "")
-    return f"<style>\n{stamp}\n{body}\n</style>"
+    body = head_css() + (f"\n\n{extra}" if extra else "") + "\n\n" + footer_stack_css()
+    out = f"<style>\n{stamp}\n{body}\n</style>"
+    return out + ("\n" + interactive_block() if interactive else "")
 
 
 # ---------------------------------------------------------------- 表紙CIコンセプト（正典・単一情報源）
@@ -201,18 +314,22 @@ def main(argv):
     try:
         lang = _opt(argv, "--lang", str, "ja")
         scale = _opt(argv, "--lang-scale", float, None)
+        inter = "--interactive" in argv
         if "--version" in argv:
             print(version_tag())
         elif "--files" in argv:
             names = css_files() + ([lang_css_file()] if lang != "ja" and lang_css_file() else [])
+            names += interactive_files() if inter else []
             print("\n".join(names))
         elif "--cover-ci" in argv:
             print(cover_ci_block())
+        elif "--footer-stack" in argv:
+            print(footer_stack_label())
         elif "--css" in argv:
             extra = lang_css(lang, scale)
-            print(head_css() + (f"\n\n{extra}" if extra else ""))
+            print(head_css() + (f"\n\n{extra}" if extra else "") + "\n\n" + footer_stack_css())
         else:
-            print(style_block(lang, scale))
+            print(style_block(lang, scale, inter))
         return 0
     except (FileNotFoundError, ValueError) as e:
         print(f"NG: {e}", file=sys.stderr)
@@ -221,7 +338,17 @@ def main(argv):
 
 if __name__ == "__main__":
     try:
-        sys.exit(main(sys.argv[1:]))
+        rc = main(sys.argv[1:])
     except BrokenPipeError:
-        # `ci_head.py | head` 等でパイプ先が先に閉じた場合は正常終了扱い
-        sys.exit(0)
+        # `ci_head.py | head` / `grep -q` 等でパイプ先が先に閉じた場合は正常終了扱い
+        rc = 0
+    try:
+        sys.stdout.flush()
+    except BrokenPipeError:
+        rc = 0
+    try:
+        sys.stdout.close()
+    except BrokenPipeError:
+        rc = 0
+    # インタプリタ終了時の stdout flush で BrokenPipe が「Exception ignored」にならないよう閉じる
+    sys.exit(rc)

@@ -36,12 +36,19 @@ body{background:var(--crystal-25);}
 .slide.dark{background:var(--ink); color:var(--crystal);}
 .slide.center{display:flex; flex-direction:column; justify-content:center;}
 
-/* footer（全スライド共通・§5.5） */
+/* footer（全スライド共通・§5.5）
+   左＝版スタック（CI / Shelpha / Template）＋コピーライト、右＝CONFIDENTIAL・頁。
+   版の実値は ci_head.py が style_block 末尾で上書き注入する（ここはフォールバック＝copyrightのみ）。 */
 .slide::before{content:"© 2026 5co. All rights reserved."; position:absolute; left:36px; bottom:15px;
   font-family:var(--serif-en); font-size:11px; letter-spacing:.04em; color:var(--ink-60);}
 .slide::after{content:"CONFIDENTIAL ・ " counter(page,decimal-leading-zero); position:absolute; right:36px; bottom:15px;
   font-family:var(--serif-en); font-size:11px; letter-spacing:.14em; color:var(--ink-60);}
 .slide.dark::before,.slide.dark::after{color:rgba(195,215,238,.65);}
+/* 任意HTML: <div class="ci-stack">…</div> を各 .slide 先頭付近に置いても可（ci_head 注入と併用しない） */
+.ci-stack{position:absolute; left:36px; bottom:15px; z-index:3; white-space:nowrap;
+  font-family:var(--serif-en); font-size:10px; letter-spacing:.04em; color:var(--ink-60);}
+.slide.dark .ci-stack{color:rgba(195,215,238,.65);}
+.slide:has(.ci-stack)::before{left:auto; right:230px;}
 
 /* ===== タイポ（φスケール） ===== */
 .t-xl{font-size:var(--fs-xl); line-height:1.12; letter-spacing:.04em; margin:0;}
@@ -330,12 +337,13 @@ ul.clean.sho-l li::before{top:8px; width:6px; height:6px;}
 .note-c{text-align:center; margin-top:10px;}
 h2.title{margin-bottom:2px; font-size:27px;}
 .sub{font-size:13px; color:var(--ink-85); margin:6px 0 0;}
-/* 日進捗・集計期間（フッター CONFIDENTIAL の左隣に1行・フッター高に揃える） */
-/* 日進捗を左へ、copyright(::before)を中央右へ＝位置入れ替え */
+/* 日進捗・集計期間（左下・フッター高に揃える）
+   .period があるときだけ左を日進捗に譲り、版スタック＋copyright(::before)を中央右へ。
+   以前は無条件で ::before を right:230px にしていたが、版スタック常設のため :has(.period) に限定。 */
 .period{position:absolute; bottom:15px; left:36px; white-space:nowrap; font-family:var(--serif-en);
   font-size:11px; letter-spacing:.04em; color:var(--ink-85); z-index:3;}
 .period b{color:var(--ink); font-weight:600;}
-.slide::before{left:auto; right:230px;}
+.slide:has(.period)::before{left:auto; right:230px;}
 .slide.dark .period{color:rgba(195,215,238,.65);} .slide.dark .period b{color:var(--crystal);}
 .notemk{font-size:11.5px; color:var(--ink-85); margin-top:6px;}
 /* 章扉 divider（dark・左に縦バー） */

@@ -1,0 +1,5 @@
+# Shelpha（分析基盤）の版ラベル。フッター左（コピーライトの左）に出す。
+# 正本はこのファイルの先頭行のみ（コメント行は無視）。未設定のときは em dash（—）を出し、推測した版番号を書かない。
+# 値の出所: Rutzbo ~/work/AI-shelpha/scripts/ops/artifact_versions.py の PIPELINE_VERSION（算出方法の版）。
+# 9.1.0 = 2026-08-21 famdup collapse 撤去（AI-shelpha f4e5848）。Shelpha 側で上げたらここも更新する。
+9.1.0

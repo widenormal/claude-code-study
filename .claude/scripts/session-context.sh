@@ -74,8 +74,19 @@ fi
 
 # 3. それでも空なら旧形式の単一ファイルを試す
 if [ -z "$STATE" ] && [ -f "$PROJ/memory/active-context.md" ]; then
-  STATE=$(cat "$PROJ/memory/active-context.md")
-  LOAD_MODE="legacy single file"
+  # Jev 絞り込みモード（docs/jev-context-select.md）: 全文注入をやめ、最初の依頼時に
+  # UserPromptSubmit フックが関連項目だけを注入する。フック未登録なら記憶が消えるので
+  # settings.json か settings.local.json（1台だけの試験 = scripts/jev_trial.sh）に登録があり、
+  # スクリプト本体も存在するときだけ有効
+  # （env だけ・登録だけ・派生リポで本体が未配布、のどれでも従来どおり全文注入）
+  if [ "${JEV_CONTEXT_SELECT:-}" = "1" ] && [ -f "$PROJ/scripts/jev_context_select.py" ] \
+     && grep -qs "jev_context_select.py" "$PROJ/.claude/settings.json" "$PROJ/.claude/settings.local.json"; then
+    STATE="（Jev 絞り込みモード: memory/active-context.md は最初の依頼時に、依頼に関係する項目だけ全文・他は見出しのみで注入されます）"
+    LOAD_MODE="legacy single file → deferred to UserPromptSubmit (Jev)"
+  else
+    STATE=$(cat "$PROJ/memory/active-context.md")
+    LOAD_MODE="legacy single file"
+  fi
 fi
 
 [ -z "$STATE" ] && STATE="(no active-context found)"
@@ -100,11 +111,29 @@ fi
 
 RESOURCES=""
 if [ -f "$PROJ/profile/resources.md" ]; then
+  # 予算・残高・期限の節は全文。「利用可能なツール」節は見出しと表の1列目（サービス名）だけの目次にする。
+  # SessionStart 出力は hook 上限（1万文字）を超えると先頭 2,000 文字しかモデルに届かないため
+  # （公式 hooks.md）、鍵の保管先・呼び出し例などの詳細は profile/resources.md を必要時に読む。
   RESOURCES=$(awk '
-    /^## (予算|残高|利用可能|inventory|期限)/ {p=1; print; next}
-    /^## / && p {p=0}
-    p
-  ' "$PROJ/profile/resources.md" 2>/dev/null | head -200)
+    function flush() { if (cells != "") { print "  " cells; cells = "" } }
+    /^## (予算|残高|利用可能|inventory|期限)/ { flush(); p = 1; full = ($0 !~ /利用可能/); print; next }
+    /^## / && p { flush(); p = 0 }
+    !p { next }
+    /^<!--/ { cmt = 1 }
+    cmt { if ($0 ~ /-->/) cmt = 0; next }
+    full { print; next }
+    /^```/ { code = !code; next }
+    code { next }
+    /^#/ { flush(); print; next }
+    /^\|/ {
+      split($0, c, "|"); x = c[2]; gsub(/^[ \t]+|[ \t]+$/, "", x)
+      if (x == "" || x ~ /^[-:]+$/ || x == "サービス" || x == "id" || x == "項目") next
+      cells = (cells == "" ? x : cells " / " x); next
+    }
+    { flush() }
+    END { flush() }
+  ' "$PROJ/profile/resources.md" 2>/dev/null | head -80)
+  [ -n "$RESOURCES" ] && RESOURCES+=$'\n'"（鍵の保管先・取得コマンド・注意点の詳細 = profile/resources.md）"
 fi
 [ -z "$RESOURCES" ] && RESOURCES="(no resources extracted)"
 
@@ -282,6 +311,7 @@ fi
 # ──────────────────────────────────────────────
 build_context() {
   printf '=== Current JST Time ===\n%s\n\n' "$JST_NOW"
+  [ -n "${SIZE_WARN:-}" ] && printf '%s\n\n' "$SIZE_WARN"
   printf '=== Active Context (state) ===\n%s\n\n' "$STATE"
   printf '=== Profile Preferences (must-haves) ===\n%s\n\n' "$PREFS"
   printf '=== Resources Inventory ===\n%s\n\n' "$RESOURCES"
@@ -315,7 +345,17 @@ build_context() {
   fi
 }
 
+# hook の出力は 1 万文字が上限。超えると本文はファイルに退避され、モデルには先頭 2,000 文字の
+# プレビューしか届かない（公式 hooks.md・設定で変更不可）。超過時はプレビュー内（時刻の直後）で知らせる
+HOOK_CAP=10000
+SIZE_WARN=""
 CTX=$(build_context)
+ctx_chars() { if command -v python3 >/dev/null 2>&1; then printf '%s' "$1" | python3 -c 'import sys; print(len(sys.stdin.read()))'; else printf '%s' "$1" | wc -c | tr -d ' '; fi; }
+CTX_LEN=$(ctx_chars "$CTX")
+if [ "${CTX_LEN:-0}" -gt "$HOOK_CAP" ] 2>/dev/null; then
+  SIZE_WARN="⚠ 起動時の出力が ${CTX_LEN} 文字で hook の上限（${HOOK_CAP} 文字）を超えたため、モデルには先頭 2,000 文字だけが届いています。memory/active-context.md・profile/preferences.md を Read して補い、記憶の剪定（.claude/skills/memory-dream.md）をユーザーに提案してください"
+  CTX=$(build_context)
+fi
 
 if command -v jq >/dev/null 2>&1; then
   jq -n \
