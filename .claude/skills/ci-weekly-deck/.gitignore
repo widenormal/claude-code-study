@@ -8,3 +8,4 @@ assets/*
 !assets/client_logo_placeholder.svg
 !assets/ci_base_sample.html
 !assets/shoken_draft_template.md
+!assets/figs/

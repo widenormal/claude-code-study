@@ -3,6 +3,111 @@
 > **これは「スライド媒体」の版ログ**です。スライドの正本は本キット（template `5co-CI-kit`）。
 > 全媒体共通の**ブランド版**は Drive `5co-CI/CHANGELOG.md` ＋ `BRAND_GUIDELINE.md` が正。
 
+## 2026-10-06 — フッター版スタック（CI / Shelpha / Template）
+
+- **追加**: コピーライト左側に `CI vX.Y · Shelpha … · Template YYYY.MM.N` を常設（若松さん指示）
+- **正本**: `VERSION` / 新設 `SHELPHA_VERSION`（未設定は `—`） / `template-manifest.json`
+- **注入**: `ci_head.py`（`--footer-stack` / `style_block` 末尾）。`.period` 頁は中央右へ退避
+- **検品**: `footer_stack_check.py`（`ci-gates.sh` 警告）
+- **規定**: `SLIDE_DESIGN_GUIDELINES.md` §5.5・`V3.2_FORMAT.md` フッタ行・`CLAUDE.md` 1行
+- CSSトークン・寸法は不変（v3.10 のまま・後方互換の表示追加）
+
+## 2026-09-30 v3.10 追補3 — 図を自動で入れる（案A：マルチエージェントの選択／案B：表・箇条書きから自動で作図）
+
+- **案A**：作成依頼時の質問（`ci-slide-options-nudge.sh`）に「④図・イラストをマルチエージェント（作成→レビュー）で仕上げる」を追加。
+  `ci_options.py write … --figs-multi|--no-figs-multi` で `figs_multiagent`（任意・省略時 false）を記録。選ばれたら Claude が
+  `workflows/ci-deck-figures.js` を実行する（④の選択＝利用者からのマルチエージェントの依頼）。`ci-finalize.sh` の出し分け（read）は不変
+- **案B**：`ci_figs.py autofig`（と `ci_figs.autofig()`）を新設。図の無い本文ページに、表（数値の列→横棒・合計行は除外）／
+  2列の箇条書き（左右の対応図）／順番のある箇条書き（流れ）／その他の箇条書き（一覧カード・矢印なし）から図を自動で作る。
+  週次・月次ビルダー（`build_deck.py`・`build_wella_deck.py`）は `ci_v2_lib.add_autofigs` で生成の最後に自動で呼ぶ
+- `ci_figs.py coverage` が ci-weekly-deck の章扉（`slide dark divider`）を本文と数えていた誤検知を修正
+- スキル `5co-ci-slide`・`ci-weekly-deck`、FIGURES_GUIDE 0-1、V3.2_FORMAT（出力オプション表）、VERSION を更新
+- 検証：見本データの週次（14枚）・WELLA 月次（8枚）デッキをビルダーで生成し、自動の図が要点ページに入り `ci-gates.sh` OK（図の無いページ OK）。
+  旧見本（文章・表だけ）に autofig を当て、対応図・横棒・流れを PNG で目視。`ci_figs.py --selftest` に autofig の回帰を追加
+- 外部 LLM は使わない（Claude のアカウントだけの社員でも同じ手順を再現できるように）
+
+## 2026-09-30 v3.10 追補2 — 週次デッキの見本を「図を使う版」に更新
+
+- `ci-weekly-deck/assets/ci_base_sample.html`：文章・表だけだった本文4ページに図を追加（課題→打ち手の対応図／投資と想定効果の横棒／時間をかける領域の同心円／4ステップのシェブロン）。章扉ページは `data-fig-exempt="章扉"` で明示。図の断片は `assets/figs/`（`ci_figs.py inject` の見本を兼ねる）
+- 検証：`ci_figs.py coverage` OK・`ci-gates.sh --figs` OK（表紙の COVER_CI? 警告は従来からの既存事項）・4ページを PNG で目視
+
+## 2026-09-30 v3.10 追補 — 図の既定を「止まる」まで徹底（スキル・仕上げゲート）
+
+- **`ci-finalize.sh` に図ゲート**：本文ページに図（フレームワーク図・グラフ・イラスト）が無いと止まる（`ci_figs.py coverage --strict`）。
+  表だけで足りるページは `data-fig-exempt="理由"`。今回だけ通すときは `--allow-no-figs "<理由>"`（理由が出力に残る・理由なしは止まる）。
+  制作中の `ci-gates.sh` は従来どおり警告（作業を止めない）
+- **スキルに手順を追加**：`5co-ci-slide`（手順6.5「図は既定で使う」・7.5「図の無いページをゼロに」・完了条件）、
+  `ci-weekly-deck`（図は既定で使う・図の無いページ検査・禁止事項）
+- **影響**：既存の週次・月次ビルダー（`ci-weekly-deck`）の出力は表中心のため、そのままでは仕上げで止まる。
+  表の下にイラスト・ミニ図を添えるか、付録ページに `data-fig-exempt` を付ける（移行期は `--allow-no-figs "<理由>"`）
+- **不具合修正（ci-finalize.sh）**：印刷用CSSの注入に使う awk へ改行を含む文字列を渡していたため、macOS の awk が「newline in string」で止まり、`</head>` のある通常のデッキで注入が失敗していた。CSS を1行にした。あわせて、変数の直後に全角文字が続く3か所（`$OUT_DESC（`・`$SRC（`・新設の理由表示）を `${…}` で囲んだ（macOS 標準の bash 3.2 が全角文字まで変数名と読み「unbound variable」で止まる・動く資料の仕上げで発生し得た）
+- テスト：`tests/ci-figs.test.sh` に仕上げゲート（止まる・理由つきで通す・理由なしは止まる・例外は通す）とスキルの記述を追加
+
+## 2026-09-29 v3.10 — 図・イラスト（figs）の標準化
+
+**後方互換の追加のみ。CSS トークン・寸法は v3.9 から不変（`ci_head.py` の出力は版スタンプの版番号だけが変わる）。**
+
+### 追加
+- **既定で図を使う（0章）**：指示が無くても本文ページには原則すべてフレームワーク図・グラフかイラストを置く。`ci_figs.py coverage` が図の無い本文ページを `FIG?` で挙げ、`ci-gates.sh` が毎回警告する（表だけで足りる付録は `data-fig-exempt="理由"`、HTML/CSS の図解は `class="ci-fig"`）。作成依頼時のフック `ci-slide-options-nudge.sh` もこの既定を毎回伝える
+- **規定 `FIGURES_GUIDE.md`**：図・イラストの描き方（3色の CSS 変数のみ・書体を書かない・文字10px以上・線画ピクトグラム）／置き方（本文の下に in-flow・1ページ1図・ページにない事実を足さない）／原本の図の再構成（画像を貼らず構成と言葉に忠実に描き直す・個人名は役割名へ）／検品と目視／マルチエージェントの進め方
+- **`ci_figs.py`**：`inject`（figs/<ページID>.html を本文末尾＝出典の直前に差し込む・元デッキは上書きしない）／`lint`（3色トークン以外の色・外部参照・script・font-family・10px 未満の文字）／`preview`（指定ページだけを 1123×794 の PNG に＝#static）／`--selftest`
+- **`ci-gates.sh --figs <dir>`**：図の断片の検品をゲートに同居（落とす）
+- **`workflows/ci-deck-figures.js`**（ページグループごとに「作成→レビュー・修正」を pipeline）・**`workflows/ci-figure-competition.js`**（方向性の違う4案→観点の違う審査員3人が4観点×10点で採点→優勝案に他案の良い点を取り込んで仕上げ）
+
+### 由来
+- 自社OKR会「育成者の育成カリキュラム」デッキ（2026-09-29・29枚）で、17ページの図を10エージェントで並列制作（作成→レビューの2段・約7分）し、WISDOM サイクル図を4案のデザインコンペで決めた（エディトリアル案が 98 点で優勝し、リング型の矢印・番号付けを取り込んで仕上げ）。案件ローカルの `figs/` 差し込み・ページ単位プレビューのスクリプトを正典に回収した。
+- 回収時に見つかった不具合を修正：根拠パネル（`<template>` 内の入れ子 `<section>`）があるページで、スライドの終端を「最初の `</section>`」と誤認し、差し込み位置・図の有無の判定がずれていた（次のスライドの直前にある最後の `</section>` を終端にする）。誤検知の修正：`border-radius` を色指定と誤読しない／数字を欧文にする `font-family:var(--serif-en)` は許可。
+
+### 検証
+- `ci_figs.py --selftest` 合格（差し込み位置・ページ番号キー・存在しないキーの報告・色/外部参照/script/書体/文字サイズの検出・data: 画像の中身を見ない）
+- 実デッキ（29枚）の図 17 断片＋コンペ仕上げ版 1 点を `lint` で全件 OK、`ci-gates.sh --figs` でゲート OK、`preview` で section id とページ番号の両方のキーを確認
+- `tests/ci-figs.test.sh` を新設
+
+## 2026-09-28 v3.9 追補 — 出力の既定を HTML のみに（PDF は質問で選ばれたときだけ）
+
+- `ci-finalize.sh` の既定を「PDF＋PPTX」から **HTML のみ** に変更（ユーザー指示 2026-09-28）。
+  `<デッキ名>.ci-options.json` が無く、コマンドにも `--pdf/--pptx` が無いときは PDF・PPTX を作らない（検査ゲートは従来どおり走る）
+- 作成依頼時の質問（`ci-slide-options-nudge.sh`）の文言に「既定は HTML のみ」を明記。PDF は質問で選ばれたときだけ出す
+- 手順書（`V3.2_FORMAT.md`「出力オプション」・`CI_KICKOFF.md`・`VERSION` の outputs 行・`5co-ci-slide`・`ci-weekly-deck`）を同じ内容に更新
+- 以前の既定（PDF＋PPTX）に頼っていた運用は `--pdf --pptx` を付けるか、質問で PDF・PPTX を選ぶ
+
+## 2026-09-27 v3.9 — 動く資料（押すと根拠が開く）・出力オプション化（PDF を任意に）
+
+**後方互換の追加のみ。CSS トークン・寸法は v3.8 から不変（`--interactive` を付けない既存デッキの見た目は変わらない。
+`ci_head.py` の既定出力は版スタンプの版番号だけが変わる＝実測で差分1行）。**
+
+### 追加
+- **動く資料の層**：`ci-interactive-v3.9.css` / `ci-interactive-v3.9.js`（VERSION の `interactive:` 行が宣言・
+  `ci_head.py --interactive` のときだけ連結）＋部品ヘルパ `ci_interactive.py`（型見本 `--demo`）
+  - 根拠パネル（右から740px・タブ2つまで・出所必須）／1枚1操作（切り口・前後・スライダー・打ち手オン/オフ）／
+    組み上がり（見出し→図→数字→根拠）／O 一覧・F 発表モード・数字キーで移動
+  - 6構造→操作の対応を `V3.2_FORMAT.md`「動く資料」に規定。出典＝uchita_success 氏の X 記事（2026-09-26）。
+    記事の色・書体・18px 下限・見出し36字は採らず CI v2 に合わせた
+- **出力オプション**：`ci_options.py`（`<デッキ名>.ci-options.json` の記録・読み出し）。`ci-finalize.sh` に
+  `--pdf/--no-pdf/--pptx/--no-pptx/--options` を追加し、ci-options.json を読んで出し分ける（ファイルが無ければ従来どおり PDF＋PPTX）
+- **作成依頼時の自動質問**：`.claude/scripts/ci-slide-options-nudge.sh`（UserPromptSubmit・登録済みの
+  `session-claudemd-nudge.sh` から呼ぶ）。作成依頼を検知すると「出力オプションを AskUserQuestion で1回聞く」を Claude に伝える
+
+### 変更
+- 検査スクリプト（`slide_overflow_check.py` / `check_text_overlap.py` / `graph_node_edge_check.py` /
+  `slide_visual_regression.py`）と `scripts/html_to_pptx.py`・`ci-finalize.sh` の印刷は URL に `#static` を付けて開く
+  （動く資料を組み上がった最終状態で検査・出力する。静的デッキでは何もしない）
+
+### 修正（既存の不具合）
+- **`ci-finalize.sh` に相対パスでデッキを渡すと PDF が1ページになっていた**。印刷用の一時ファイルを
+  `file://./.ci-finalize…` という壊れた URL で開き、Chrome がエラーページを1枚だけ PDF にしていた
+  （実測：10枚の型見本が1ページ）。一時ファイルを絶対パスにし、空白・日本語を含むパスも開けるよう URL エンコードした
+  （実測：相対パス・「案件 フォルダ」とも 5枚→5ページ）
+
+### 独立検品（Codex）で直したもの
+- `#static`（検査・PDF）では操作を受け付けない／印刷の前に発表モード・一覧・根拠パネルを外し、印刷後に元の状態へ戻す
+- 根拠パネル：Tab をパネル内で回す・入力欄の中からでも Esc で閉じる・`aria-label`／`role=tabpanel`。隠れた要素は `inert`
+- 数字キーの途中で別の操作をしたら取り消す／値の検証（非数・負の値・0 の `data-ci-max`）／`<a href>` に付けても遷移しない
+- 出力オプション：知らない項目（打ち間違い）・未決の項目で止める（既定値で埋めない）／選択と HTML の組み方の食い違いを両方向で止める／
+  今回選んでいない物が前回分として出力先に残っていれば警告／finalize の引数検査（値なし・知らないオプション）
+- 作成依頼の検知：大文字小文字を区別しない・「パワポ」「presentation」等を追加・「作らないで」では鳴らさない・
+  バックグラウンド処理の完了通知では鳴らさない（このセッションで実際に誤って鳴ったため）
+
 ## 2026-09-08 v3.8 — 要点(gist)・琥珀の汎用化・Amazon用語の正典化
 
 **後方互換の追加のみ。CSS トークン・寸法は v3.7 から不変（既存デッキの見た目は変わらない）。**

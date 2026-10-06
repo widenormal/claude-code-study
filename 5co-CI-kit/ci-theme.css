@@ -29,12 +29,16 @@ body{background:var(--crystal-25);}
 .slide.dark{background:var(--ink); color:var(--crystal);}
 .slide.center{display:flex; flex-direction:column; justify-content:center;}
 
-/* footer（全スライド共通・§5.5） */
+/* footer（全スライド共通・§5.5）— 版スタックは ci_head が注入（本ファイルはフォールバック） */
 .slide::before{content:"© 2026 5co. All rights reserved."; position:absolute; left:36px; bottom:15px;
   font-family:var(--serif-en); font-size:11px; letter-spacing:.04em; color:var(--ink-60);}
 .slide::after{content:"CONFIDENTIAL ・ " counter(page,decimal-leading-zero); position:absolute; right:36px; bottom:15px;
   font-family:var(--serif-en); font-size:11px; letter-spacing:.14em; color:var(--ink-60);}
 .slide.dark::before,.slide.dark::after{color:rgba(195,215,238,.65);}
+.ci-stack{position:absolute; left:36px; bottom:15px; z-index:3; white-space:nowrap;
+  font-family:var(--serif-en); font-size:10px; letter-spacing:.04em; color:var(--ink-60);}
+.slide.dark .ci-stack{color:rgba(195,215,238,.65);}
+.slide:has(.ci-stack)::before{left:auto; right:230px;}
 
 /* ===== タイポ（φスケール） ===== */
 .t-xl{font-size:var(--fs-xl); line-height:1.12; letter-spacing:.04em; margin:0;}
