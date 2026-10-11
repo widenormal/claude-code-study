@@ -1,0 +1,149 @@
+/* =====================================================================
+   5co CI 動く資料レイヤー v3.9（任意・正本 5co-CI-kit・編集は PR 経由のみ）
+   ---------------------------------------------------------------------
+   何のためか:
+     会議で「その内訳は？」と聞かれたとき、押せば根拠が開く資料にする。
+     本文スライドは今の CI v3.2 系のまま（見た目・寸法・トークン不変）。
+     このファイルは「押す・切り替える・組み上がる」の見た目だけを足す。
+   いつ連結されるか:
+     python3 ci_head.py --interactive のときだけ（VERSION の interactive: 行が宣言）。
+     付けない出力は v3.8 と1バイトも変わらない。
+   色:
+     正典トークン（--ink / --crystal / --crystal-55 / --crystal-25 / --ink-60 / --ink-14）のみ。
+     第4色は使わない（CI v2 の3色規定）。
+   静止状態（#static・動きを減らす設定・印刷）:
+     JS が html に .ci-static を付け、組み上がった最終状態だけを出す。
+     検査スクリプト・ci-finalize.sh の PDF は必ずこの状態で見る。
+   ===================================================================== */
+
+/* ---- 押せるもの（根拠を開く・ページへ飛ぶ・切り替える） ---- */
+.ci-ev-btn,[data-ci-ev],[data-ci-goto],[data-ci-set],[data-ci-toggle]{cursor:pointer;}
+.ci-ev-btn{display:inline-flex; align-items:center; gap:.3em; border:1px solid var(--ink-14); background:var(--white);
+  color:var(--ink); border-radius:999px; padding:3px 12px; font-size:12.5px; line-height:1.4; font-family:inherit;
+  transition:border-color .15s, background .15s;}
+.ci-ev-btn::after{content:"›"; font-size:1.15em; line-height:1;}
+.ci-ev-btn:hover,.ci-ev-btn:focus-visible{border-color:var(--ink); background:var(--crystal-25); outline:none;}
+[data-ci-ev]:not(.ci-ev-btn):hover,[data-ci-goto]:hover{outline:2px solid var(--ink); outline-offset:3px;}
+[data-ci-ev]:not(.ci-ev-btn):focus-visible,[data-ci-goto]:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+
+/* 切り替えボタン（切り口・前後・打ち手のオン/オフ） */
+.ci-seg{display:inline-flex; border:1px solid var(--ink-14); border-radius:999px; overflow:hidden; background:var(--white);}
+.ci-seg > button{border:0; background:transparent; color:var(--ink-60); padding:3px 14px; font-size:12.5px;
+  line-height:1.4; font-family:inherit;}
+.ci-seg > button + button{border-left:1px solid var(--ink-14);}
+.ci-seg > button[aria-pressed="true"]{background:var(--ink); color:var(--crystal);}
+.ci-chip{border:1px solid var(--ink-14); background:var(--white); color:var(--ink-60); border-radius:6px;
+  padding:3px 12px; font-size:12.5px; line-height:1.4; font-family:inherit;}
+.ci-chip::before{content:"○ ";}
+.ci-chip[aria-pressed="true"]{border-color:var(--ink); background:var(--crystal-55); color:var(--ink);}
+.ci-chip[aria-pressed="true"]::before{content:"● ";}
+.ci-range{accent-color:var(--ink); width:100%;}
+
+/* 状態で出し分ける要素（JS が .ci-off を付け外し）。visibility も落とす＝子の文字まで検査対象外になる */
+.ci-off{opacity:0 !important; visibility:hidden !important; pointer-events:none;}
+[data-ci-when]{transition:opacity .35s, visibility .35s;}
+/* 同じ場所で入れ替わる値（切り口ごとの数字など）を重ねて置く */
+.ci-stack{display:inline-grid;}
+.ci-stack > *{grid-area:1/1;}
+/* 値で伸び縮みする棒（--ci-v = 0〜1。JS が値から計算して入れる＝量を表す動きは値由来のみ） */
+[data-ci-bar]{transition:width .6s cubic-bezier(.2,.7,.2,1), height .6s cubic-bezier(.2,.7,.2,1), order 0s;}
+[data-ci-bar].ci-h{width:calc(var(--ci-v,0) * 100%);}
+[data-ci-bar].ci-v{height:calc(var(--ci-v,0) * 100%);}
+
+/* ---- 部品（ci_interactive.py が出す HTML に対応） ---- */
+/* 根拠の枠：大きな数字1つ → それが何か → 補足 → 比べる相手と差（式つき） → 内訳を見る */
+.ci-panel{background:var(--crystal-25); border-radius:8px; padding:16px 20px; display:flex; flex-direction:column; gap:6px;}
+.ci-panel .ci-big{font-family:var(--serif-en); font-size:var(--fs-xl); line-height:1; font-variant-numeric:lining-nums tabular-nums; color:var(--ink);}
+.ci-panel .ci-big small{font-size:.38em; margin-left:.1em;}
+.ci-panel .ci-what{font-size:15px; font-weight:600;}
+.ci-panel .ci-sub{font-size:13px; color:var(--ink-85); line-height:1.6;}
+.ci-panel .ci-diff{font-size:13px; border-top:1px solid var(--ink-14); padding-top:6px; line-height:1.6;}
+.ci-panel .ci-ev-btn{align-self:flex-start; margin-top:4px;}
+/* ページへ入るカード（1ページ目の全体像から各ページへ） */
+.ci-card{border:1px solid var(--ink-14); border-radius:8px; padding:10px 56px 10px 14px; background:var(--white); position:relative;}
+.ci-card .ci-card-go{position:absolute; right:10px; top:8px; font-size:12px; color:var(--ink-60);}
+.ci-card .ci-card-go::after{content:" ›";}
+/* 横棒（値で伸びる）と、比べる前の値の点線 */
+.ci-rows{display:flex; flex-direction:column; gap:8px;}
+.ci-row{display:grid; grid-template-columns:7.5em 1fr 6.5em; align-items:center; gap:10px; font-size:13.5px;}
+.ci-row .ci-track{position:relative; height:18px; background:var(--crystal-25);}
+.ci-row .ci-fill{position:absolute; left:0; top:0; bottom:0; background:var(--crystal);}
+.ci-row.ci-main .ci-fill{background:var(--ink);}
+.ci-row .ci-ghost{position:absolute; left:0; top:-2px; bottom:-2px; border:1.5px dashed var(--ink-60); background:transparent;}
+.ci-row .ci-val{text-align:right; font-variant-numeric:tabular-nums;}
+.ci-controls{display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:12.5px; color:var(--ink-60);}
+.ci-formula{background:var(--crystal-25); border-radius:6px; padding:8px 14px; font-size:13px; line-height:1.7;}
+
+/* ---- 組み上がり（見出し→主役の図→数字→根拠。live のときだけ） ---- */
+html:not(.ci-static) .slide:not(.ci-built) [data-ci-step]{opacity:0; transform:translateY(6px);}
+html:not(.ci-static) .slide:not(.ci-built) [data-ci-step].ci-grow{opacity:1; transform:scaleY(0); transform-origin:bottom;}
+html:not(.ci-static) .slide:not(.ci-built) [data-ci-step].ci-grow-x{opacity:1; transform:scaleX(0); transform-origin:left;}
+html:not(.ci-static) [data-ci-step]{transition:opacity .45s ease, transform .6s cubic-bezier(.2,.7,.2,1);
+  transition-delay:calc(var(--ci-step,0) * 450ms + var(--ci-i,0) * 60ms);}
+
+/* 入った直後に1回だけ「ここは押せる」を輪で知らせる */
+@keyframes ci-ring{0%{box-shadow:0 0 0 0 rgba(16,24,32,.35);}100%{box-shadow:0 0 0 12px rgba(16,24,32,0);}}
+html:not(.ci-static) .slide.ci-built .ci-hint{animation:ci-ring 1.1s ease-out 2.2s 1;}
+
+/* ---- 根拠パネル（右から出る・幅740px＝A4横スライドの約2/3・後ろを暗くする） ---- */
+.ci-drawer-bg{position:fixed; inset:0; background:rgba(16,24,32,.42); opacity:0; pointer-events:none;
+  transition:opacity .25s; z-index:900;}
+.ci-drawer{position:fixed; top:0; right:0; bottom:0; width:min(740px,100vw); background:var(--white); color:var(--ink);
+  transform:translateX(100%); transition:transform .32s cubic-bezier(.2,.7,.2,1); z-index:901;
+  display:flex; flex-direction:column; box-shadow:-8px 0 30px rgba(16,24,32,.18);
+  font-family:var(--sans-ja); line-height:1.7;}
+.ci-drawer-open .ci-drawer{transform:none;}
+.ci-drawer-open .ci-drawer-bg{opacity:1; pointer-events:auto;}
+.ci-drawer header{padding:22px 28px 12px; border-bottom:1px solid var(--ink-14); position:relative;}
+.ci-drawer .ci-crumb{font-size:12.5px; color:var(--ink-60); letter-spacing:.04em;}
+.ci-drawer .ci-judge{font-family:var(--serif-ja); font-size:20px; line-height:1.55; margin:6px 40px 0 0;}
+.ci-drawer .ci-close{position:absolute; top:16px; right:18px; width:36px; height:36px; border:1px solid var(--ink-14);
+  border-radius:50%; background:var(--white); font-size:20px; line-height:1; color:var(--ink); cursor:pointer;}
+.ci-drawer .ci-close:hover{border-color:var(--ink);}
+.ci-drawer .ci-tabs{display:flex; gap:4px; padding:10px 28px 0;}
+.ci-drawer .ci-tabs button{border:0; border-bottom:2px solid transparent; background:none; padding:6px 10px;
+  font-size:14px; color:var(--ink-60); font-family:inherit; cursor:pointer;}
+.ci-drawer .ci-tabs button[aria-selected="true"]{border-bottom-color:var(--ink); color:var(--ink);}
+.ci-drawer .ci-body{flex:1; overflow:auto; padding:16px 28px 20px; font-size:15px;}
+.ci-drawer .ci-body table{width:100%; border-collapse:collapse; font-size:14px;}
+.ci-drawer .ci-body th,.ci-drawer .ci-body td{padding:6px 8px; border-bottom:1px solid var(--ink-14); text-align:left;}
+.ci-drawer .ci-body th{background:var(--crystal-25); font-weight:600;}
+.ci-drawer .ci-body td.r,.ci-drawer .ci-body th.r{text-align:right; font-variant-numeric:tabular-nums;}
+.ci-drawer .ci-src{border-top:1px solid var(--ink-14); padding:10px 28px 16px; font-size:12.5px; color:var(--ink-60);}
+.ci-drawer .ci-src::before{content:"出所: ";}
+
+/* ---- 一覧（O キー）：全ページを縮小して並べ、見出しの筋を一目で見る ---- */
+html.ci-overview body{display:flex; flex-wrap:wrap; gap:14px; padding:18px; justify-content:center;}
+html.ci-overview .slide{zoom:.28; margin:0; cursor:pointer;}
+html.ci-overview .slide.ci-cur{outline:8px solid var(--ink); outline-offset:0;}
+
+/* ---- 発表モード（F キー）：1枚だけを画面いっぱいに ---- */
+html.ci-present, html.ci-present body{background:var(--ink); overflow:hidden; height:100%;}
+/* 他のスライドは display:none にしない（フッターのページ番号＝CSS counter が数えられなくなる） */
+html.ci-present .slide{visibility:hidden; position:fixed; left:50%; top:50%; margin:0;
+  transform:translate(-50%,-50%) scale(var(--ci-fit,1)); box-shadow:none;}
+html.ci-present .slide.ci-cur{visibility:visible;}
+html.ci-present .slide.ci-cur.ci-zoom-in{animation:ci-zoom .45s cubic-bezier(.2,.7,.2,1);}
+@keyframes ci-zoom{from{transform:translate(-50%,-50%) scale(calc(var(--ci-fit,1) * .82)); opacity:.2;}
+  to{transform:translate(-50%,-50%) scale(var(--ci-fit,1)); opacity:1;}}
+
+/* 画面左下の操作ヒント（live の画面でだけ・印刷しない） */
+.ci-keys{position:fixed; left:12px; bottom:10px; z-index:800; font:12px/1.4 var(--sans-ja); color:var(--ink-60);
+  background:rgba(255,255,255,.86); border:1px solid var(--ink-14); border-radius:6px; padding:3px 9px;}
+html.ci-present .ci-keys{background:rgba(16,24,32,.6); color:var(--crystal); border-color:transparent;}
+
+/* ---- 静止状態・印刷：最終状態だけを出す（PDF・検査はここを見る） ---- */
+html.ci-static [data-ci-step]{opacity:1 !important; transform:none !important; transition:none !important;}
+html.ci-static [data-ci-bar],html.ci-static [data-ci-when]{transition:none !important;}
+html.ci-static .ci-hint{animation:none !important;}
+html.ci-static .ci-keys{display:none;}
+@media (prefers-reduced-motion: reduce){
+  [data-ci-step],[data-ci-bar],[data-ci-when],.ci-drawer,.ci-drawer-bg{transition:none !important;}
+  .ci-hint{animation:none !important;}
+}
+@media print{
+  .ci-drawer,.ci-drawer-bg,.ci-keys{display:none !important;}
+  [data-ci-step]{opacity:1 !important; transform:none !important;}
+  /* 紙では押せない：根拠ボタンは場所を保ったまま消す（レイアウトを動かさない＝検査結果と同じ） */
+  .ci-ev-btn{visibility:hidden;}
+}

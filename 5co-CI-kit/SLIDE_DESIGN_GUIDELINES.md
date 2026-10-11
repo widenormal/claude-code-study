@@ -89,10 +89,17 @@
 
 ## 5.5 フッター（全スライド共通・厳守）
 
-- **左下**: `© 2026 5co. All rights reserved.`
+- **左下（版スタック → コピーライト）**: `CI vX.Y · Shelpha <版> · Template YYYY.MM.N  ·  © 2026 5co. All rights reserved.`
+  - 版スタックは**コピーライトの左側**に置く（同一行・区切りは中黒 `·`）。
+  - 正本:
+    - CIスライド（キット）版 = `5co-CI-kit/VERSION` 先頭行（例 `v3.10`）
+    - Shelpha 版 = `5co-CI-kit/SHELPHA_VERSION` 先頭の非コメント行（未設定時は `—`。推測禁止）
+    - Template 版 = `template-manifest.json` の `template_version`（無ければ `.claude/.template-state.json`）
+  - 実装: `ci_head.py` が `style_block()` / `--css` 末尾で `.slide::before` の content を上書き注入する（`python3 ci_head.py --footer-stack` で確認可）。静的CSS単体は copyright のみのフォールバック。
+  - `.period`（日進捗）がある頁は左を日進捗に譲り、版スタック＋copyright は中央右（`right:230px`）。
 - **右下**: `CONFIDENTIAL ・ NN`（頁番号は2桁ゼロ詰め。機密でない公開資料は CONFIDENTIAL を外し頁のみ）
-- 仕様: 欧文セリフ（--serif-en＝Hoefler Text）11px／字間 .08em（CONFIDENTIAL は .16em）／色 ink-60、**Dark面は crystal blue 65%**／下端から14px・左右36px
-- 実装: CSSカウンタ（`body{counter-reset:page}` `.slide{counter-increment:page}` ＋ `.slide::before/::after`）。表紙にも付与する。
+- 仕様: 欧文セリフ（--serif-en＝Hoefler Text）／版スタックは10px・copyright・CONFIDENTIAL は11px／字間 .08em（CONFIDENTIAL は .16em）／色 ink-60、**Dark面は crystal blue 65%**／下端から14px・左右36px
+- 実装: CSSカウンタ（`body{counter-reset:page}` `.slide{counter-increment:page}` ＋ `.slide::before/::after`）。表紙にも付与する。検品は `footer_stack_check.py`（`ci-gates.sh` が警告として実行）。
 - ロックアップは v2 シンボル（`5co-CI-kit/assets/5co_logo_lockup_v2.svg`・viewBox 0 0 50.857 36.507）を使用し、**パスに fill を残さない**（fill:currentColor 継承を阻害するため。Adobe書き出しの `style="fill:#…"` は必ず除去）。
 
 ## 5.6 はみ出し検証（編集のたびに必須）
