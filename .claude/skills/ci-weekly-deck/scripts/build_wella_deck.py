@@ -158,7 +158,7 @@ def main():
 
     nf = ci.numfield_style(cfg.get("numfield_svg"))
     # 正典CSS連結＝ci_head 経由のみ(V3.2_FORMAT 1.6・fail-closed)。版スタンプが冒頭に焼き込まれる
-    html = ci.inject_ci_head(ci.render(head, S, extra_head=nf))
+    html = ci.add_autofigs(ci.inject_ci_head(ci.render(head, S, extra_head=nf)))
     out = cfg.get("output_html", "./output/WELLA_月次定例.html")
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     open(out, "w", encoding="utf-8").write(html)

@@ -1,0 +1,9 @@
+/* ci-illus-v3.13.css — 差し色イラスト（2層・v3.13・2026-10-31）
+   正＝FIGURES_GUIDE.md §2-3。イラスト（人物写真ではない絵）を「グレーの土台」＋「差し色の層1つ」で置く。
+   差し色の層は mask-image の形だけを使い、色は var(--crystal) で塗る＝CI トークンに自動で追従する。
+   部品の HTML は ci_figs.py illus（関数 illus_html）で作り、手書きしない。検品＝ci_figs.py lint。 */
+.ci-illus{position:relative; display:inline-block; margin:0; line-height:0; max-width:100%;}
+.ci-illus > .ci-illus-base{display:block; width:100%; height:auto; filter:grayscale(1);}
+.ci-illus > .ci-illus-accent{position:absolute; inset:0; background:var(--crystal); pointer-events:none;
+  -webkit-mask-size:100% 100%; mask-size:100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:0 0; mask-position:0 0;}

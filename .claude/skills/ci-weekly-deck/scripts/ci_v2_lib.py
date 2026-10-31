@@ -115,6 +115,20 @@ def inject_ci_head(html):
     return html.replace("<!--CI_HEAD-->", ci_head.style_block())
 
 
+def add_autofigs(html):
+    """図の無い本文ページに、表（数値の列→横棒）か箇条書き（対応図・流れ・一覧）から図を自動で添える
+    （5co-CI-kit ci_figs.autofig・FIGURES_GUIDE.md 0章「図は既定で使う」）。表も箇条書きも無いページは
+    そのまま残る＝仕上げ（ci-finalize.sh）の FIG? で気づける。何度呼んでも二重に入らない。"""
+    kit = find_ci_kit()
+    if kit not in sys.path:
+        sys.path.insert(0, kit)
+    import ci_figs
+    html, added = ci_figs.autofig(html)
+    if added:
+        print("自動の図:", ", ".join(f"{n}枚目={k}" for n, k in added))
+    return html
+
+
 # ---------------------------------------------------------------- formatters (IR作法)
 def num(s):
     """セル文字列を数値へ。非数値/空はNone。"""

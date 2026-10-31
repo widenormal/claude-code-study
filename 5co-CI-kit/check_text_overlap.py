@@ -20,6 +20,11 @@ NEAR-MISS ティア（2026-07-13 追加・AI運用OODAループ資料の実イ�
         NEAR_MISS_PX=8 で近接警告の閾値を変更（0 で WARN 無効化）
         --json  … 1ファイル1行の JSON（JSON Lines）で出す。**下流ツールはこれを使う**
         --lines … 所見を1件1行で出す（各行に OVERLAP / NEAR-MISS を前置）
+        --digest-mode … #static を付けず、data-digest-keep="hero" がある頁に
+                        data-page-mode="digest" を付けてから測定（ダイジェスト見た目の重なり検査）。
+                        既定の #static（フル最終状態）は変えない。
+        CI_OVERLAP_NO_STATIC=1 … URL の #static だけ外す（digest 強制はしない）。
+                        --digest-mode 時は不要（こちらが優先して #static を外す）
 出力:   <name>: OK  /  <name>: OVERLAP slide番号:要素A×要素B(重なりpx)
         近接があれば続けて NEAR-MISS 行を表示（exit code には影響しない）
 戻り値: 重なり（OVERLAP）が1件でもあれば 1（ゲートとして ci-finalize.sh から呼ばれる）
@@ -134,19 +139,36 @@ def parse(rep, near):
     return ovl, nm, raw1, raw2
 
 
-def check(path, structured=False):
+# ダイジェスト測定用: #static を外したうえで、hero 付き頁を digest にする（測定直前）
+DIGEST_PREP = """
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  try { document.documentElement.classList.remove('ci-static'); } catch (e) {}
+  document.querySelectorAll('section.slide').forEach(s => {
+    if (s.querySelector('[data-digest-keep="hero"]'))
+      s.setAttribute('data-page-mode', 'digest');
+  });
+});
+</script>"""
+
+
+def check(path, structured=False, digest_mode=False):
     near_px=os.environ.get("NEAR_MISS_PX","8")
     try: near_px=str(max(0,float(near_px)))
     except ValueError: near_px="8"
     probe=PROBE.replace("__NEAR_MISS_PX__",near_px)
+    no_static = digest_mode or os.environ.get("CI_OVERLAP_NO_STATIC", "").strip() in ("1", "true", "TRUE", "yes", "YES")
     html=open(path,encoding="utf-8").read()
-    html=html.replace("</body>",probe+"</body>",1) if "</body>" in html else html+probe
+    tail = (DIGEST_PREP if digest_mode else "") + probe
+    html=html.replace("</body>",tail+"</body>",1) if "</body>" in html else html+tail
     with tempfile.NamedTemporaryFile("w",suffix=".html",delete=False,encoding="utf-8") as f:
         f.write(html); tmp=f.name
     try:
-        # --no-sandbox: CI コンテナ等 root 実行時に必須（Mac では無害）
+        # 既定 #static＝動く資料（v3.9）を組み上がった最終状態で開く。静的デッキでは何もしない。
+        # --digest-mode / CI_OVERLAP_NO_STATIC=1 のときだけハッシュ無し（ダイジェスト CSS が効く）
+        url = "file://" + urllib.parse.quote(tmp) + ("" if no_static else "#static")
         r=subprocess.run([CHROME,"--headless=new","--disable-gpu","--no-sandbox","--hide-scrollbars",
-                          "--virtual-time-budget=15000","--dump-dom","file://"+urllib.parse.quote(tmp)],
+                          "--virtual-time-budget=15000","--dump-dom",url],
                          capture_output=True,text=True,timeout=120)
         m=re.search(r"OVERLAP_REPORT\[(.*?)\]!NEARMISS_REPORT\[(.*?)\]</title>",r.stdout,re.S)
         rep=m.group(1).strip() if m else "(probe失敗)"
@@ -191,14 +213,16 @@ def format_lines(res):
 if __name__=="__main__":
     args=sys.argv[1:]
     as_json="--json" in args; as_lines="--lines" in args
+    digest_mode="--digest-mode" in args
     files=[a for a in args if not a.startswith("--")]
     if not files:
-        sys.exit("使い方: python3 check_text_overlap.py <file.html> [...] [--json|--lines]")
+        sys.exit("使い方: python3 check_text_overlap.py <file.html> [...] "
+                 "[--json|--lines] [--digest-mode]")
     if not (as_json or as_lines):
-        sys.exit(max(check(p) for p in files))
+        sys.exit(max(check(p, digest_mode=digest_mode) for p in files))
     bad=0
     for p in files:
-        res=check(p, structured=True)
+        res=check(p, structured=True, digest_mode=digest_mode)
         print(json.dumps(res, ensure_ascii=False) if as_json else "\n".join(format_lines(res)))
         if not res["ok"]: bad=1
     sys.exit(bad)

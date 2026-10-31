@@ -36,3 +36,7 @@
 
 ---
 更新: 2026-06-03 / 出典 `~/dev/5co-ci-icon/slide/assets/`
+
+## 表紙モーションとの区別（2026-10-28）
+- 本ファイルの `numfield_*.svg` / `numfield_outline.py` は**静的** Oracle 背景の正。
+- 動く表紙・中扉は別層 `cover_motion/`（`.cover-full.cm-field` が `.numfield-full` を隠して `.cm` を注入）。numfield 資産は置き換えない。手順＝`cover_motion/COVER_MOTION_HANDOFF.md`。

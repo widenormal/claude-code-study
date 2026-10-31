@@ -62,3 +62,20 @@
 - 正本 pull（PAT 認証）と sparse-checkout の成否。
 - ドリフト照合の実挙動（正本 vs ローカルの不一致警告）。
 - ※ 現状は「op/PAT 欠落時の graceful skip」「ハッシュ計算」「additionalContext 出力」のみ検証済み。
+
+## 共用作業箱のローカル正本キャッシュ（`scripts/ci-canonical-cache/`・2026-10-30）
+
+op／PAT を使わない共用作業箱（エージェントの作業用 Linux 箱・`gh` 認証済み）では、`/workspace/.5co-CI-canonical/` に
+`ensure.sh`・`sync.sh` を置き、作業前に `bash /workspace/.5co-CI-canonical/ensure.sh` を実行して kit を使う
+（`/workspace/5co-CI-kit` はそこへのリンク）。本リポの `scripts/ci-canonical-cache/` がその2本の正本。
+
+- **事故（2026-10-30）**: キャッシュが v3.11 のまま、main は v3.12.4 まで進んでいた。旧 `ensure.sh` は
+  `VERSION` が**無いとき**しか同期せず、crontab も無かったため、一度入ったキャッシュは二度と更新されなかった。
+- **修正**: `ensure.sh` が毎回 `git ls-remote`（短いタイムアウト・既定 8 秒・`CI_CANON_CHECK_TIMEOUT`）で main の commit を見て、
+  `5co-CI-kit/.synced_from` の記録と違えば `sync.sh` を呼ぶ。旧形式の記録（短縮 commit）も前方一致で比べる。
+- **軽さ**: `sync.sh` は blob を取らずに clone し、`5co-CI-kit` のツリーが前回と同じなら中身は取り直さず記録だけ更新する
+  （main の別ディレクトリだけが進んだとき）。記録＝`<commit 40桁> <時刻> tree=<5co-CI-kit の tree>`。
+- **fail-open**: オフライン・認証切れ・タイムアウトで main を確認できない／同期や検証に失敗したときは、キャッシュがあれば
+  警告（stderr）して既存の版で続ける（終了コード 0）。キャッシュが無く同期もできないときだけ 1。新しい版は検証が済むまで今のコピーを消さない。
+- **入れ替え方**: `cp scripts/ci-canonical-cache/{ensure,sync}.sh /workspace/.5co-CI-canonical/`（どちらも単体で動く）。
+- **テスト**: `bash tests/ci-canonical-cache.test.sh`（file:// のローカル bare リポを main に見立てる・ネットワーク不要）。
