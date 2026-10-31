@@ -121,7 +121,7 @@ def check(path):
     try:
         # --no-sandbox: CI コンテナ等 root 実行時に必須（Mac では無害）
         r=subprocess.run([CHROME,"--headless=new","--disable-gpu","--no-sandbox","--hide-scrollbars",
-                          "--virtual-time-budget=15000","--dump-dom","file://"+urllib.parse.quote(tmp)],
+                          "--virtual-time-budget=15000","--dump-dom","file://"+urllib.parse.quote(tmp)+"#static"],  # #static＝動く資料（v3.9）を組み上がった最終状態で開く。静的デッキでは何もしない
                          capture_output=True,text=True,timeout=120)
         m=re.search(r"NEGRAPH_REPORT\[(.*?)\]</title>",r.stdout,re.S)
         rep=m.group(1).strip() if m else "(probe失敗)"
