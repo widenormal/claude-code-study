@@ -44,14 +44,14 @@
 - 書体: 和文 `Hiragino Mincho ProN` ／ 欧文 `Hoefler Text`（macOS標準・タグラインはイタリック。ブランド原典の Garamond は名刺等のみ＝#642 で移行）。
 - **V3.1 タイポ（v3.2 系デッキの正式仕様・2026-07-06 #642 導入／2026-07-07 明文化）**:
   **本文＝ゴシック（`--sans-ja` Hiragino Sans）、セリフは「顔」だけ**——表紙・章扉（`cover-full`）、
-  見出し `h2.title`（和文明朝）、kicker・tagline・`.en`（欧文 Hoefler）。
+  見出し `h2.title`（和文明朝）、tagline・`.en`（欧文 Hoefler）。
   実装は `ci-format-v3.2.css` の `v31-typography` ブロック
   （`section.slide:not(.cover-full) *{font-family:var(--sans-ja) !important}` ＋セリフ復帰の例外群）。
   密度の高い数表・本文の可読性のための規定で、**v3.2 系デッキで本文が明朝のままなら世代遅れ**（2026-07-07 WELLA 事故）。
   ※週次 v2 雛形（`5co_slide_template.html`）のみ旧仕様（明朝統一）を残置。
 - **φ タイプスケール（厳守）**: 隣接階層の比 = φ(1.618)。基準 `--fs-body: 18px`（1280×720時）。
   `note 11px → body 18px → md 29px → lg 47px → xl 76px`（端数は丸め可・比を崩さない）。
-- 字間: 見出し・欧文 `letter-spacing:.04em`、kicker `.18em`。
+- 字間: 見出し・欧文 `letter-spacing:.04em`。
 - **リガチャ禁止**: `font-variant-ligatures: none;` を全体に（字間を取る組版で ffi 等が不自然になるため。決定 #13）。
 - **数字＝ライニング（等高）＋タブラー（等幅）必須**: 表・KPI・金額・日付など**データ数字はベースライン揃いの lining figures** で組む。`table, th, td, .t-num, .kpi-val {font-variant-numeric: lining-nums tabular-nums;}` を標準装備。本文中の欧文オールドスタイル数字は装飾として可だが、**マーケティング資料の数表では禁止**（4/7/9 が下に沈み読み比べを阻害する）。
 - **Georgia をフォールバックに置かない（厳禁）**: Georgia はオールドスタイル数字しか持たず、EB Garamond 未導入環境で数表が崩れる事故の原因（2026-06-11 実例）。欧文スタックは `"Hoefler Text","Baskerville","Palatino","Hiragino Mincho ProN","Yu Mincho",serif`。
@@ -86,13 +86,21 @@
 - **クリアスペース = タグラインの cap 高さ以上**を四周に確保（業界標準則・決定根拠と同じ）。
 - 配置の既定: 表紙=左上（ハングライン上）／章扉・クロージング=光学的中心（幾何中心より半ユニット上。裏面の決定と同じ）。
 - 分離・歪み・比率変更は禁止（比率の改定は decisions.md による正式決定のみ）。
+- **本文ページのヘッダー左上はロゴのみ（2026-10-29 若松さん決定・ブランドガイドブック β0.1）**：ブランドロゴ｜モールロゴ（Amazon／楽天／Yahoo! 公式・無加工・同じ高さ）だけを置き、**ロゴの横にキッカー文字（章番号・タグ・小見出し）を並べない**。ヘッダーに置くのはロゴ・見出し `h2.title`・accent-bar だけ（右上のコーナーロゴ 102px は従来どおり）。
 
 ## 5.5 フッター（全スライド共通・厳守）
 
-- **左下**: `© 2026 5co. All rights reserved.`
+- **左下（版スタック → コピーライト）**: `CI vX.Y · Shelpha <版> · Template YYYY.MM.N  ·  © 2026 5co. All rights reserved.`
+  - 版スタックは**コピーライトの左側**に置く（同一行・区切りは中黒 `·`）。
+  - 正本:
+    - CIスライド（キット）版 = `5co-CI-kit/VERSION` 先頭行（例 `v3.10`）
+    - Shelpha 版 = `5co-CI-kit/SHELPHA_VERSION` 先頭の非コメント行（未設定時は `—`。推測禁止）
+    - Template 版 = `template-manifest.json` の `template_version`（無ければ `.claude/.template-state.json`）
+  - 実装: `ci_head.py` が `style_block()` / `--css` 末尾で `.slide::before` の content を上書き注入する（`python3 ci_head.py --footer-stack` で確認可）。静的CSS単体は copyright のみのフォールバック。
+  - `.period`（日進捗）がある頁は左を日進捗に譲り、版スタック＋copyright は中央右（`right:230px`）。
 - **右下**: `CONFIDENTIAL ・ NN`（頁番号は2桁ゼロ詰め。機密でない公開資料は CONFIDENTIAL を外し頁のみ）
-- 仕様: 欧文セリフ（--serif-en＝Hoefler Text）11px／字間 .08em（CONFIDENTIAL は .16em）／色 ink-60、**Dark面は crystal blue 65%**／下端から14px・左右36px
-- 実装: CSSカウンタ（`body{counter-reset:page}` `.slide{counter-increment:page}` ＋ `.slide::before/::after`）。表紙にも付与する。
+- 仕様: 欧文セリフ（--serif-en＝Hoefler Text）／版スタックは10px・copyright・CONFIDENTIAL は11px／字間 .08em（CONFIDENTIAL は .16em）／色 ink-60、**Dark面は crystal blue 65%**／下端から14px・左右36px
+- 実装: CSSカウンタ（`body{counter-reset:page}` `.slide{counter-increment:page}` ＋ `.slide::before/::after`）。表紙にも付与する。検品は `footer_stack_check.py`（`ci-gates.sh` が警告として実行）。
 - ロックアップは v2 シンボル（`5co-CI-kit/assets/5co_logo_lockup_v2.svg`・viewBox 0 0 50.857 36.507）を使用し、**パスに fill を残さない**（fill:currentColor 継承を阻害するため。Adobe書き出しの `style="fill:#…"` は必ず除去）。
 
 ## 5.6 はみ出し検証（編集のたびに必須）
@@ -216,7 +224,7 @@
 ```
 ┌─────────────────────────┬──────────────────────────────────────┐
 │                          │                                       │
-│   numfield_cover_left    │   eyebrow (kicker)                    │
+│   numfield_cover_left    │   eyebrow（表紙のみ）                 │
 │      (左ゾーン)          │   ─                                   │
 │                          │                                       │
 │       [ Logo ]           │   タイトル（メイン）                  │
@@ -270,7 +278,6 @@
 | h3 セクション | 1.35rem | 各セクション見出し |
 | lead | 1.15〜1.3rem | サブタイトル・リード文 |
 | body | 1rem | 本文 |
-| kicker | 0.8rem | 章番号・タグ |
 | tagline | 1.05rem italic | "Strategy, refined." 等 |
 
 `html { font-size: 19px; }` を基準に投影向けスケール。

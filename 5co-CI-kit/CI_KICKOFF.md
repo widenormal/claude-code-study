@@ -38,6 +38,11 @@
 - `5co_slide_template.html`（週次14枚・v2系雛形＝本文明朝）は**週次ベース資料専用の残置雛形**。
   月次・新規デッキをこれから作らない（2026-07-07 WELLA 世代遅れ事故の原因）。
 - A4横・出力は `ci-finalize.sh`。3色以外を使っていないか最後に自己チェック。
+- **出力は作成依頼のたびに選ぶ（v3.11）**：HTML は常に作り、**既定は HTML のみ**。メール送付用高品質 PDF は若松さん明示承認後のみ（`PDF_OUTPUT_RULE.md`）。HTML 最終ページに手元確認用 PDF のダウンロード可。動く資料・PPTX は任意。
+  **既定オン**: `interactive: true`／`figs_multiagent: true`（オフはユーザー明示時のみ・standing 2026-10-06）。
+  最初に1回だけ質問し、答えを `ci_options.py write` でデッキの隣に記録する（`V3.2_FORMAT.md`「出力オプション」「動く資料」）。
+  動く資料は**1ページ1操作・操作はページの構造で決まる**（全体像からズーム・O 一覧・#static は最終状態・根拠パネル 720px は出所のあるページだけ・2026-10-30）。作成時に構造→操作の表で確かめる。
+- **人物写真・切り抜きを使うとき**は `FIGURES_GUIDE.md` §2-2（人物素材の標準9項目・切り抜き検品 `--bg-residue`）を先に読む（2026-10-30）。
 - **暗黙確認（全CI型共通）**: 検査ゲートが OK でも、**レンダリング結果（スクリーンショット /
   PDF）を目視確認するまで「完了」と報告しない**。自動ゲート＝機械的な下限保証、目視＝知覚
   判断の上乗せ（`V3.2_FORMAT.md` 規定 2.5。NEAR-MISS 警告が出た箇所は特に確認）。
@@ -46,20 +51,27 @@
 - **VERSION … 現行フォーマット宣言（まずこれを読む）**
 - V3.2_FORMAT.md … 現行スライド8型の仕様
 - COPY_GUIDE.md … **crystal text**＝文言の正（「問いへの答え」方式）
+- vocab/ … **Amazon Ads 語彙帳**（98概念・日英中・当社で使う／使わない表記）。スライドやコピーを書くときはこの語彙帳に合わせる（使い方＝`vocab/README.md`・検査＝`vocab_check.py`／ci-gates の `VOCAB?`＝当社NG語は落とす・表記ゆれは警告・v3.13.3）
+- FIGURES_GUIDE.md … 図・イラストの描き方・置き方・原本の再構成（`ci_figs.py`・`workflows/`・v3.11）
+- DIGEST_GUIDE.md … ダイジェストモード（「このページをダイジェストにして」・v3.11／Amazon人物型・v3.12／人物素材は FIGURES_GUIDE §2-2 の標準・2026-10-30）
+- brand_guidebook/ … 5 co. Branding Design Guidebook（β0.6・整備中。右余白ルール×人物型の使い分け＝README.md）
+- PDF_OUTPUT_RULE.md … PDF 承認制＋手元確認用ダウンロード（v3.11）
 - SLIDE_DESIGN_GUIDELINES.md … タイポ・グリッド・ロゴ・表罫線の規範
 - LOGO_HANDOFF.md … ロゴSVG・カラー・フォント・ルール
 - ci-theme.css … 3色CSSテーマ（:root変数＋v2基本クラス。単体では本文明朝＝v2系）
 - NUMFIELD_HANDOFF.md … 数字背景SVGの使い方
+- cover_motion/COVER_MOTION_HANDOFF.md … 表紙・中扉の CSS モーション（任意・2026-10-28）
 - 5co_slide_template.html … 週次v2雛形（残置。月次・新規には使わない）
 - 完成名刺の実例: meishi/cards/<社員名>/（front/back PNG・.ai）
 
 ## 要点（これだけで最低限再現できる）
 - 配色は**3色のみ**：白 #FFFFFF ／ crystal blue #C3D7EE（PANTONE 2707 C）／ ink #101820（PANTONE Black 6 C）。グレー・黒#000・他色相は禁止。濃淡は3色の不透明度・白混ぜで。
 - 文字・ロゴ＝ink、地・面・アクセント＝crystal blue／白。
+- **図は既定で使う**：指示が無くても本文ページには原則すべて、フレームワーク図・グラフ（ci_frameworks.py／framework-recommend）かイラスト（FIGURES_GUIDE.md）を置く。仕上げ前に ci-gates.sh の FIG? をゼロにする。
 - フォント：和文 'Hiragino Mincho ProN','Yu Mincho',serif ／ 欧文 "Hoefler Text","Baskerville","Palatino","Hiragino Mincho ProN","Yu Mincho",serif（macOS標準・タグラインはイタリック）。**Georgia をフォールバックに置かない（厳禁・オールドスタイル数字事故の原因）**。字間ゆったり（letter-spacing .04em）。ブランド原典の Garamond は名刺等の別成果物のみ（#642 でスライドは Hoefler へ移行）。
 - ロゴ＝マーク（水晶玉＝市場を透視する5）＋タグライン「Strategy, refined.」の**固定ロックアップ**。分離・歪み・比率変更しない。color指定で着色。
 - **Oracle（数字背景）**：多彩セリフ数字を粗密でちりばめ密→疎へディゾルブ（crystal blue・うっすら）。**文字・図表には掛けない**（可読性最優先）。表紙・章扉の大判のみ。
-- コンセプト：水晶玉（crystal ball）で市場を透視し戦略を磨く＝Strategy, Refined.。静謐・上質・余白多め・装飾過多にしない。表紙には `.cover-ci` でこのコンセプトを必ず明記（→ `V3.2_FORMAT.md`「表紙CIコンセプト」）。
+- コンセプト：水晶玉（crystal ball）で市場を透視し戦略を磨き続ける＝Strategy, Refined.。静謐・上質・余白多め・装飾過多にしない。表紙には `.cover-ci` でこのコンセプトを必ず明記（→ `V3.2_FORMAT.md`「表紙CIコンセプト」）。
 
 ## ルール
 - 既存の文言・数値・固有名詞は改変しない（誤字修正のみ・要確認）。

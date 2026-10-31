@@ -106,6 +106,24 @@ kit = add_to_sys_path(__file__)   # 見つからなければ SystemExit（黙っ
 import ci_head
 ```
 
+### 動く資料・人物の切り抜きを使ったとき（必須・2026-10-30 追加）
+
+- **動く資料**は `#static`（最終状態）の検査に加え、**通常表示（操作の初期状態）の重なり**も見る。表を操作用に編集したら、
+  原本と見出し行・行順・セル文字を機械比較する（`V3.2_FORMAT.md`「動く資料」）。
+- **人物の切り抜き素材**（`alpha/` の PNG）は、白フチに加えて**背景色の取り残し**も検品する。人物素材（`facing_*`）は納品前に必須、
+  シーン素材は警告扱い＋目視。`ci-gates.sh --cutouts` は当面、背景色の取り残しを警告のみで回す。
+
+```bash
+# 動く資料：通常表示の重なり
+CI_OVERLAP_NO_STATIC=1 python3 5co-CI-kit/check_text_overlap.py <デッキ.html> --lines
+# 人物素材（納品前・必須）：白フチ＋縮小判定＋背景色の取り残し → OK の後に #101820・#C3D7EE に合成して目視
+python3 5co-CI-kit/cutout_halo_check.py <alpha.png> --resize 1152,813,725,406,362,284,142 --bg-residue
+# スマホを持つ素材：スマホ周りの浮いた点・細線（--box はスマホの範囲に合わせる）
+python3 5co-CI-kit/phone_speck_check.py <alpha.png> --box x0,y0,x1,y1 --ref-w <素材の幅>
+# デッキと素材フォルダをまとめて（bgres は警告のみ・CI_HALO_BGRES=0 で省略）
+bash 5co-CI-kit/ci-gates.sh --cutouts <alpha_dir> <デッキ.html>
+```
+
 ## 困ったとき
 - 表示が崩れる → Mac の Chrome/Safari で開いているか確認（Windows・プレビューアプリは非対応）
 - テンプレ・データが見つからない → 共有ドライブ「CI正本(配布)」の閲覧権限を管理者に確認

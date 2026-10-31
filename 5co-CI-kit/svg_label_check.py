@@ -24,6 +24,10 @@ svg_label_check.py — デッキ内の SVG 図版で、ラベルが重なる・�
   CONTRAST … 濃い塗り（<rect>）の上に濃い文字が完全に収まっている＝読めない
              ※ <path>（ファネルの台形など）は対象外。矩形の塗りだけを見る
 
+除外（カバーモーションの数字フィールド）
+  `.cm-field` スライド内の SVG、および `svg.cm-svg` / `.cm` 配下の数字 SVG は対象外。
+  layer8 の数百桁が互いに重なるのは意匠であり、本文チャートのラベル所見を埋もれさせるため。
+
 文字幅は東アジア文字幅（W/F/A＝全角）で推定する。等幅ではないため厳密ではないので、
 しきい値は「明らかに読めない」ものだけが出る強さにしてある。
 """
@@ -148,6 +152,17 @@ def check_svg(vw, vh, body, tol=1.0):
     return out
 
 
+def _is_cover_motion_svg(open_tag, sec):
+    """カバーモーション（cm-field / cm-svg）の数字 SVG は検査対象外。"""
+    if re.search(r'\bcm-svg\b', open_tag):
+        return True
+    # section 開始タグに cm-field（表紙・中扉の数字フィールド）
+    head = sec[: sec.find('>') + 1] if '>' in sec else sec[:240]
+    if re.search(r'\bcm-field\b', head):
+        return True
+    return False
+
+
 def check_file(path, verbose=False):
     html = open(path, encoding="utf-8").read()
     # スライド単位で見出しを付けられるよう、section ごとに切る
@@ -157,6 +172,9 @@ def check_file(path, verbose=False):
         if not sec.startswith('<section class="slide'):
             continue
         for si, m in enumerate(SVG_RE.finditer(sec), 1):
+            open_tag = m.group(0)[: m.group(0).find('>') + 1]
+            if _is_cover_motion_svg(open_tag, sec):
+                continue
             vw, vh = float(m.group(1)), float(m.group(2))
             for kind, msg in check_svg(vw, vh, m.group(3)):
                 findings.append((pi, si, kind, msg))
