@@ -288,7 +288,7 @@ def check(path: pathlib.Path, structured: bool = False):
         tf.write(probe_html)
         tmp = pathlib.Path(tf.name)
     try:
-        url = 'file://' + urllib.parse.quote(str(tmp))
+        url = 'file://' + urllib.parse.quote(str(tmp)) + '#static'  # #static＝動く資料（v3.9）を組み上がった最終状態で開く。静的デッキでは何もしない
         # --no-sandbox: CI コンテナ等 root 実行時に必須（Mac では無害）
         r = subprocess.run([CHROME, '--headless=new', '--disable-gpu', '--no-sandbox',
                             '--dump-dom', '--virtual-time-budget=4000', url],
