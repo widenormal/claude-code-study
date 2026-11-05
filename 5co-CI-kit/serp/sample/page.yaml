@@ -1,0 +1,36 @@
+# 見本: WELLA OPI × Amazon.co.jp 検索結果の根拠ページ（2026-11-02 取得・前回比は 2026-11-01）
+# 組み立て: python3 ../serp_page.py page.yaml
+# 顧客名・ASIN・検索語が入るのは「見本だから」。kit の規定側（FIGURES_GUIDE §2-4）には入れない。
+
+page_id: p01
+out: "OPI_Amazon検索順位_根拠_2026-11-02.html"
+doc_title: "OPI × Amazon.co.jp 検索結果の順位（2026-11-02）｜5 co. CI"
+
+results: "src/results_2026-11-02.json"        # serp_redact.py を通した配布用の写し
+prev_results: "src/results_2026-11-01.json"   # 前回比（同じ条件で撮った前日）
+# フルページ PNG の原本は社内の取得フォルダにある（コミットしない＝郵便番号が写るため）。
+# 帯の画像は figs/serp/ に書き出し済みなので、見るだけなら再取得は要らない。
+shots_dir: "/workspace/strategy/_ci_ops/amazon_serp_shot/opi_run_2026-11-02"
+figs_dir: "figs/serp"
+scale: 0.5
+band_height: 360
+max_rows: 2
+search_bar: true
+
+brand_logo: "figs/brand_logo.png"
+mall_logo: "figs/amazon_logo.svg"
+brand_name: "OPI"
+mall_name: "Amazon"
+
+area: "東京都港区"
+rank_label: "順位"
+
+terms: ["マニキュア", "ネイルポリッシュ", "ネイル 強化剤"]
+
+title: "Amazon検索の順位｜「マニキュア」で4位・6位、「ネイルポリッシュ」で6位にOPIが入っている"
+title_html: 'Amazon検索の順位｜「マニキュア」で4位・6位、<span class="nw">「ネイルポリッシュ」で6位</span>にOPIが入っている'
+gist:
+  - "一般キーワード2語で、OPIはオーガニック順位の上位10位に入っている（マニキュア 4位・6位／ネイルポリッシュ 6位）。"
+  - "次のギャップは「ネイル 強化剤」（20位、上位10位の外）。施策（案）は要確認。"
+judge: "上位10位内は「マニキュア」「ネイルポリッシュ」の2語。「ネイル 強化剤」は20位で上位10位外。"
+measures: {}   # 施策が決まっていないので既定の「施策（案）要確認」が入る

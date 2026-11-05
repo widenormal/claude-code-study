@@ -16,7 +16,17 @@ avoid_5co 列は人が読む文なので、機械で拾える語だけを取り�
   - 英字を含む語は大文字小文字を区別し、前後が英数字でないときだけ数える（ACoS は拾い ACOS は拾わない）
   拾った語の一覧は --list で確認できる。
 
-数えない場所: <script>/<style>/<template>/コメント・タグの属性、data-vocab-exempt="理由" を付けた要素（section ごとでも可・
+  仕入れ先名  DMT・Acorn-i・Ignite・AMZ-POS（および アコーン・イグナイト・AMZPOS 等の言い換え）は
+          当社NG語として必ず落とす。社外に出るものには仕入れ先名も推計のしかたも書かない
+          （若松さん決定 2026-11-02）。この語だけは表示テキストではなく **HTML 全文** を見る＝
+          <style>・<script>・HTML/CSS/JS のコメント・タグの属性も対象（CSSコメントに残った名前が
+          そのまま配布されていたため・v3.14.1）。社内だけの資料は --allow-vendor で外せる。
+          **「Shelpha」は書いてよい**（若松さん決定 2026-11-03・v3.14.2）＝出典欄（例「出典：Shelpha（取得日）」）も
+          フッター版スタック（`CI … · Shelpha … · Template …`）も顧客向けデッキで出せる。
+          案件の引き継ぎで Shelpha も伏せると決めた資料だけ --ban-shelpha で当社NG語に戻す
+          （そのときは ci_head.py --no-shelpha で版スタックからも外す＝対で使う）。
+
+数えない場所（仕入れ先名は除く＝全文を見る）: <script>/<style>/<template>/コメント・タグの属性、data-vocab-exempt="理由" を付けた要素（section ごとでも可・
   出典欄で Amazon のページ名をそのまま引くとき等）、kit が差し込む UI（data-ci-pdf-save＝手元確認用 PDF のボタン）。
 
 使い方:
@@ -25,6 +35,9 @@ avoid_5co 列は人が読む文なので、機械で拾える語だけを取り�
                    ci-gates.sh はこれで呼ぶ（当社NG語＝落とす・表記ゆれ＝警告。--strict のときは all）
     --fail-on all  所見が1つでもあれば 1（既定）
     --warn-only    所見があっても終了コード 0
+    --allow-vendor 仕入れ先名の検査を外す（社内だけの資料。社外に出すものには付けない）
+    --ban-shelpha  「Shelpha」も当社NG語に戻す（既定は許可・伏せると決めた案件だけ。
+                   ci_head.py --no-shelpha と対で使う＝版スタックにも出さない）
     --json       ファイルごとに JSON Lines 1行（{"file","ok","hits":[{"page","term","count","use","level","key"}]}）
   python3 vocab_check.py --list [--vocab <csv>]   # 拾う語の一覧
   python3 vocab_check.py --selftest
@@ -47,6 +60,50 @@ SEC = re.compile(r'<section\b[^>]*\bclass="slide\b[^"]*"[^>]*>', re.I)
 PAREN = re.compile(r"[（(][^（）()]*[）)]")
 ASCII = re.compile(r"[A-Za-z0-9]")
 EXEMPT_ATTRS = ("data-vocab-exempt", "data-ci-pdf-save")   # 理由つきの除外／kit が差し込む UI（PDF ボタンの文言）
+
+# ---------------------------------------------------------------- 仕入れ先・データ事業者の名前（v3.14.1／v3.14.2改）
+# 若松さん決定（2026-11-02）: 社外に出るもの（お客様向けデッキ・営業資料・サイト）には仕入れ先名も
+# 推計のしかたも書かない＝出所の注記も同じ。社内だけの資料は書いてよい（--allow-vendor）。
+# 表示テキストだけでは足りない: <style> のCSSコメントに残った名前がそのまま配布されていた
+# （ci-format-v3.2.css の「IGNITE…」・v3.14.1 で削除）。この検査だけは HTML 全文
+# （<style>・<script>・HTML/CSS/JS のコメント・属性）を見て、見つかれば当社NG語として落とす。
+# 若松さん決定（2026-11-03・v3.14.2）: **Shelpha は別扱い＝書いてよい**（出典欄・フッター版スタック）。
+# 既定の VENDOR_TERMS から外し、伏せると決めた案件だけ --ban-shelpha（ban_shelpha=True）で戻す。
+# DMT・Acorn-i・Ignite・AMZ-POS と推計のしかたは引き続きどこにも書かない。
+VENDOR_TERMS = (
+    ("DMT", r"(?<![a-z0-9])dmt(?![a-z0-9])"),
+    ("Acorn-i", r"(?<![a-z0-9])acorn(?:[ _-]*i)?(?![a-z0-9])|アコーン"),
+    ("Ignite", r"(?<![a-z0-9])ignite(?![a-z0-9])|イグナイト"),
+    ("AMZ-POS", r"(?<![a-z0-9])amz[ _-]*pos(?![a-z0-9])"),
+)
+SHELPHA_TERM = ("Shelpha", r"shelpha|シェルファ")   # --ban-shelpha のときだけ足す（2026-11-03）
+VENDOR_USE = "社外向けには書かない（仕入れ先名・推計のしかたを出さない・社内資料だけ可）"
+SHELPHA_USE = "この案件では伏せる（--ban-shelpha。通常のデッキでは「Shelpha」と書いてよい）"
+VENDOR_RE = tuple((n, re.compile(p, re.I)) for n, p in VENDOR_TERMS)
+SHELPHA_RE = (SHELPHA_TERM[0], re.compile(SHELPHA_TERM[1], re.I))
+# フッター版スタック「CI vX · Shelpha Y · Template Z」は既定で出す（2026-11-03 若松さん決定・§5.5）。
+# --ban-shelpha で検査する資料は、組むときも ci_head.py --no-shelpha で版スタックから外す（対で使う）。
+
+
+def vendor_hits(html, ban_shelpha=False):
+    """HTML 全文から仕入れ先名を拾う（<style>・<script>・コメント・属性・フッターも見る）。すべて当社NG語。"""
+    masked = html
+    heads = [(m.start(), m.group(0)) for m in SEC.finditer(masked)]
+    out = {}
+    for name, pat in VENDOR_RE + ((SHELPHA_RE,) if ban_shelpha else ()):
+        for m in pat.finditer(masked):
+            n = sum(1 for s, _ in heads if s <= m.start())
+            pid = None
+            if n:
+                mid = re.search(r'\bid="([^"]+)"', heads[n - 1][1])
+                pid = mid.group(1) if mid else None
+            use = SHELPHA_USE if name == SHELPHA_TERM[0] else VENDOR_USE
+            h = out.setdefault((n, name), {"page": n, "id": pid, "term": name, "count": 0,
+                                           "use": use, "level": "NG", "key": "vendor", "lines": []})
+            h["count"] += 1
+            if len(h["lines"]) < 5:
+                h["lines"].append(masked.count("\n", 0, m.start()) + 1)
+    return [out[k] for k in sorted(out)]
 
 
 def _parts(cell):
@@ -164,7 +221,7 @@ def pages(html):
     return out
 
 
-def check(html, terms):
+def check(html, terms, vendor=True, ban_shelpha=False):
     hits = []
     for n, pid, body in pages(html):
         text = visible_text(body)
@@ -176,14 +233,21 @@ def check(html, terms):
             if k:
                 hits.append({"page": n, "id": pid, "term": t["term"], "count": k,
                              "use": t["use"], "level": t["level"], "key": t["key"]})
+    if vendor:
+        hits += vendor_hits(html, ban_shelpha)
     return hits
 
 
 def main(argv):
-    vocab, warn, js, lst, files, fail_on = DEFAULT_VOCAB, False, False, False, [], "all"
+    vocab, warn, js, lst, files, fail_on, vendor = DEFAULT_VOCAB, False, False, False, [], "all", True
+    ban_shelpha = False
     it = iter(argv)
     for a in it:
-        if a == "--vocab":
+        if a == "--allow-vendor":
+            vendor = False
+        elif a == "--ban-shelpha":
+            ban_shelpha = True
+        elif a == "--vocab":
             vocab = next(it, "")
         elif a == "--fail-on":
             fail_on = next(it, "")
@@ -227,7 +291,7 @@ def main(argv):
             print(f"{name}: NG 読めません: {e}")
             bad += 1
             continue
-        hits = check(html, terms)
+        hits = check(html, terms, vendor=vendor, ban_shelpha=ban_shelpha)
         ok = not hits
         ng = sum(h["count"] for h in hits if h["level"] == "NG")
         bad += (1 if ng else 0) if fail_on == "ng" else (0 if ok else 1)
@@ -235,13 +299,16 @@ def main(argv):
             print(json.dumps({"file": f, "ok": ok, "ng": ng, "hits": hits}, ensure_ascii=False))
             continue
         for h in hits:
-            where = f"p{h['page']:02d}" + (f"（#{h['id']}）" if h["id"] else "")
+            where = "全体" if h["page"] == 0 else f"p{h['page']:02d}" + (f"（#{h['id']}）" if h["id"] else "")
+            if h.get("lines"):
+                where += "・" + "/".join(f"{n}行目" for n in h["lines"])
             print(f"{name}: VOCAB? {where} 「{h['term']}」×{h['count']} → {h['use']}（{h['level']}・語彙帳 {h['key']}）")
         n = sum(h["count"] for h in hits)
         if ok:
             print(f"{name}: OK")
         elif ng:
-            print(f"{name}: NG（VOCAB? {n}件・うち当社NG語 {ng}件・直すか data-vocab-exempt=\"理由\"）")
+            v = "・仕入れ先名は除外できません＝書き換える" if any(h["key"] == "vendor" for h in hits) else ""
+            print(f"{name}: NG（VOCAB? {n}件・うち当社NG語 {ng}件・直すか data-vocab-exempt=\"理由\"{v}）")
         else:
             print(f"{name}: WARN（VOCAB? {n}件・表記ゆれのみ・直すか data-vocab-exempt=\"理由\"）")
     return 0 if (warn or not bad) else 1
@@ -273,6 +340,46 @@ def selftest():
     ok &= check('<section class="slide"><p>速やかに一覧で把握</p></section>', terms) == []
     ok &= check('<section class="slide"><a class="ci-pdf-save" data-ci-pdf-save>PDFをダッシュボード</a></section>', terms) == []
     ok &= next(t for t in terms if t["term"] == "リアルタイム")["key"] == "rt"   # 語そのものの行の直し方を採る
+    # 仕入れ先名は HTML 全文を見る（v3.14.1）: CSSコメントに隠れていても落とす／きれいな版は通る
+    hidden = ('<style>/* カテゴリ名下の推計シェア（参考・IGNITE昨年同月×YoY分母） */\n.x{color:red}</style>'
+              '<section class="slide" id="p1"><p>市場規模の推移</p></section>')
+    ok &= [(h["term"], h["level"], h["page"]) for h in check(hidden, terms)] == [("Ignite", "NG", 0)]
+    ok &= check(hidden, terms, vendor=False) == []            # --allow-vendor（社内資料）では見ない
+    clean = ('<style>/* カテゴリ名下の参考シェア（昨年同月比の分母） */\n.x{color:red}</style>'
+             '<section class="slide" id="p1"><p>市場規模の推移（当社の補正データ）</p></section>')
+    ok &= check(clean, terms) == []
+    # HTMLコメント・表示テキスト・言い換えも拾う（ページ番号つき）。Shelpha は既定では拾わない（v3.14.2）
+    mixed = '<section class="slide" id="p1"><!-- Shelpha 調べ --><p>DMT と Acorn-i、AMZ-POS、アコーン</p></section>'
+    ok &= [(h["term"], h["count"], h["page"]) for h in check(mixed, terms)] == [
+        ("AMZ-POS", 1, 1), ("Acorn-i", 2, 1), ("DMT", 1, 1)]
+    ok &= [(h["term"], h["count"]) for h in check(mixed, terms, ban_shelpha=True)] == [
+        ("AMZ-POS", 1), ("Acorn-i", 2), ("DMT", 1), ("Shelpha", 1)]
+    # <script> とタグの属性に隠しても拾う
+    ok &= [h["term"] for h in check('<script>var src="AMZPOS";</script>', terms)] == ["AMZ-POS"]
+    ok &= [h["term"] for h in check('<section class="slide"><img alt="イグナイト" src="x.png"></section>', terms)] == ["Ignite"]
+    # 出典欄・フッターの版スタックの「Shelpha」は既定で通る（若松さん決定 2026-11-03・v3.14.2）
+    stack = '<style>.slide::before{content:"CI v3.14.2 · Shelpha 9.1.0 · Template 2026.11.5  ·  © 2026 5co.";}</style>'
+    ok &= check(stack, terms) == []
+    ok &= [h["term"] for h in check(stack, terms, ban_shelpha=True)] == ["Shelpha"]
+    src_line = '<section class="slide" id="p1"><p class="src">出典：Shelpha（2026年11月3日取得）</p></section>'
+    ok &= check(src_line, terms) == []
+    ok &= [h["term"] for h in check(src_line, terms, ban_shelpha=True)] == ["Shelpha"]
+    # kit が注入する版スタックに Shelpha 版が入り、他の仕入れ先名は無いこと（既定・2026-11-03）
+    sys.path.insert(0, SELF_DIR)
+    import ci_head  # noqa: E402
+    ok &= not vendor_hits(ci_head.footer_stack_css())
+    ok &= "Shelpha" in ci_head.footer_stack_css()
+    ok &= "Shelpha" not in ci_head.footer_stack_css(shelpha=False)
+    # 似た語で誤検知しない
+    ok &= check('<section class="slide"><p>ignited な市場・POS データ・DMTS</p></section>', terms) == []
+    # kit が配る CSS・テンプレートに仕入れ先名が残っていないこと（Shelpha は可・版スタック以外）
+    for f in ("ci-format-v3.2.css", "ci-charts.css", "ci-gist-v3.8.css", "5co_biz_briefing_template.html"):
+        fp = os.path.join(SELF_DIR, f)
+        if os.path.isfile(fp):
+            left = vendor_hits(open(fp, encoding="utf-8").read())
+            ok &= not left
+            if left:
+                print(f"  {f}: {[h['term'] for h in left]}")
     # 本物の語彙帳が読め、拾う語があること
     if os.path.isfile(DEFAULT_VOCAB):
         real = compile_terms(load_rows(DEFAULT_VOCAB))

@@ -1,0 +1,35 @@
+/* 正本: 候補者用の事業プラン資料 v22（2026-11-05 若松さん合格）から抜き出し。kit consent/ v3.18.0 */
+/* 開いた直後の同意画面（取扱注意アンバー＝kit ci-conf-block と同じ配色・pill ボタン＝ci-pdf-save と同じ形を拡大） */
+:root{ --insight:#f6b44a; --insight-ink:#5a3500; --insight-line:#d97706; --insight-bg:#fdeacb; }
+#ci-consent{display:none;}
+html.ci-consent-pending, html.ci-consent-pending body{overflow:hidden !important;}
+html.ci-consent-pending body > *:not(#ci-consent){visibility:hidden !important;}
+html.ci-consent-pending #ci-consent{display:flex; position:fixed; inset:0; z-index:2147483000; align-items:center; justify-content:center;
+  padding:32px; box-sizing:border-box; background:var(--crystal-25,#eef4fb); overflow:auto;}
+/* v21 若松さん指示 2026-11-05「このページにロゴを入れて」: 他ページと同じ 5co ロゴ（#lk・Strategy, refined. 付き）を中央上に */
+.ci-consent-logo{display:block; width:150px; height:auto; fill:currentColor; color:var(--ink,#13233a); margin:0 auto 6px;}
+.ci-consent-card{width:min(820px,100%); display:flex; flex-direction:column; align-items:center; gap:26px; text-align:center;}
+.ci-consent-block{width:100%; box-sizing:border-box; display:flex; flex-direction:column; align-items:center; gap:14px; padding:26px 32px;
+  background:var(--insight-bg); border:2.5px solid var(--insight); border-radius:12px; color:var(--insight-ink); box-shadow:0 0 0 5px rgba(246,180,74,.18);}
+.ci-consent-k{display:inline-block; padding:5px 20px; background:var(--insight); color:var(--insight-ink); border:1px solid var(--insight-line);
+  border-radius:4px; font-family:var(--sans-ja,inherit); font-size:20px; font-weight:700; letter-spacing:.14em;}
+.ci-consent-body{margin:0; font-family:var(--serif-ja,inherit); font-size:24px; line-height:1.7; font-weight:600; color:var(--insight-ink);}
+.ci-consent-btn{display:inline-flex; align-items:center; gap:.5em; text-decoration:none; border:1.5px solid var(--ink,#13233a); background:var(--white,#fff);
+  color:var(--ink,#13233a); border-radius:999px; padding:12px 40px; font-size:26px; line-height:1.4; font-family:var(--sans-ja,inherit); font-weight:700;
+  letter-spacing:.06em; cursor:pointer; white-space:nowrap; transition:background .15s;}
+.ci-consent-btn::before{content:""; width:14px; height:14px; border-radius:50%; background:var(--crystal,#c3d7ee);}
+.ci-consent-btn:hover,.ci-consent-btn:focus-visible{background:var(--crystal-25,#eef4fb); outline:2px solid var(--ink,#13233a); outline-offset:3px;}
+.ci-consent-note{margin:0; font-family:var(--sans-ja,inherit); font-size:20px; line-height:1.6; color:var(--ink,#13233a);}
+.ci-consent-addr{margin:0; font-family:var(--sans-ja,inherit); font-size:18px; line-height:1.6; color:var(--ink-85,#333);}
+.ci-consent-addr b{font-family:var(--sans-en,inherit); letter-spacing:.02em; user-select:all;}
+/* PDF：表紙の左下に同じ注記（画面では出さない） */
+.ci-pdf-consent-note{display:none;}
+@media print{
+  #ci-consent{display:none !important;}
+  html.ci-consent-pending body > *{visibility:visible !important;}
+  html.ci-consent-pending, html.ci-consent-pending body{overflow:visible !important;}
+  .ci-pdf-consent-note{display:block; position:absolute; right:56px; top:40px; width:430px; z-index:3; box-sizing:border-box; padding:6px 12px;
+    background:var(--insight-bg); border:1.5px solid var(--insight); border-radius:8px; color:var(--insight-ink);
+    font-family:var(--sans-ja,inherit); font-size:11px; line-height:1.5; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  .ci-pdf-consent-note b{font-weight:700;}
+}

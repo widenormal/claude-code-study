@@ -32,4 +32,4 @@ PR #1220 の `facing_*_v2.png`（再検査で bgres NG）の置き換え。v2 �
 - **consumer_02 の v3 はまだ無い**（未作成。v2 は bgres NG のため入れない）
 - 作り方: 元写真（無地グレー/青の背景）→ 専用の切り抜きモデルのマスク → 髪の帯だけ matting・前景色の推定・alpha bleed（`FIGURES_GUIDE.md` §2-2「切り抜きの作り方」）。**下端はフェードさせず切りっぱなし**（最下行は不透明）。手前に水色を重ねない
 - 検品（納品前・必須）: `python3 5co-CI-kit/cutout_halo_check.py <alpha.png> --resize 1152,813,725,406,362,284,142 --bg-residue` が 5/5 OK（元写真に位置合わせした bgres 込み・元写真は案件側にあり kit には入れない＝kit 内で再実行すると bgres は SKIP）。スマホを持つ consumer_01 は `phone_speck_check.py --ref-w 661 --box 330,470,530,680` も OK。#101820・#C3D7EE に合成して目視
-- 人物は架空。ページでは `alt` に「架空の人物・イメージ」と書く（`DIGEST_GUIDE.md`）
+- 人物は架空。ページでは `alt` に「ペルソナ名（架空の人物・背景なし切り抜き）」と書く（例：「Amazonユーザー（架空の人物・背景なし切り抜き）」・`COPY_GUIDE.md` ルール10・11）

@@ -1,0 +1,37 @@
+# serp_targets.yaml — Amazon検索順位の根拠ページ（SERP）の取得指定・雛形
+# 置き場所: <案件フォルダ>/_context/serp_targets.yaml（顧客固有の値は kit に置かない）
+# 正＝5co-CI-kit/FIGURES_GUIDE.md §2-4／取得＝5co-CI-kit/serp/serp_shot.py
+
+client: "{{顧客名}}"
+brand_regex: '{{ブランド名の正規表現。例: \bBRAND\b|ブランド名}}'
+
+# 検索語＝一般語だけ（ブランド名を含む語は serp_shot.py が実行前に落とす）。
+# 1回の実行はページ読み込み5回までなので、届け先の設定1回ぶんを引いて最大4語。
+terms:
+  - "{{一般キーワード1}}"
+  - "{{一般キーワード2}}"
+  - "{{一般キーワード3}}"
+
+# 顧客 ASIN（ブランド名一致でも顧客カードと判定する。親子とも並べてよい）
+asins:
+  - "{{ASIN1}}"
+  - "{{ASIN2}}"
+
+top_threshold: {pc: 10}       # オーガニック順位（スポンサー枠を除く）がこれ以下なら「上位」
+
+capture:
+  login: none                 # ログアウトのみ。共有のログイン済みブラウザは使わない（none 以外は実行前に止まる）
+  postal: "105-0003"          # 届け先を固定する（港区西新橋）。ページには区までしか書かない
+  postal_area_keywords: ["西新橋", "港区"]   # 郵便番号の代わりに受け入れる地名（「市港区」は除外）
+  device: pc
+  viewport: {width: 1366, height: 900}
+  locale: ja-JP
+  timezone: Asia/Tokyo
+  user_agent_suffix: "Agent/5co-serp-shot"   # Amazon Agent Terms: 自動エージェントは UA で名乗る
+  delay_sec_min: 12           # ページ読み込みの間隔（12 未満を書いても 12 秒になる）
+  max_page_loads: 5           # 1回の実行の上限（5 より大きく書いても 5 になる）
+  on_captcha: stop            # CAPTCHA・ブロックを見たら停止（解かない・回避しない）
+
+# 出所の表記はページ側で固定（「出所：Amazon.co.jp検索結果（取得日時・条件）」）。
+# ここに書くのは社内の原本（results.json）用のラベルで、ページには出さない。
+source_label: "Amazon.co.jp 検索結果（ログアウト・PC）"

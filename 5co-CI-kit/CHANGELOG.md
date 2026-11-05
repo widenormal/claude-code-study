@@ -3,6 +3,125 @@
 > **これは「スライド媒体」の版ログ**です。スライドの正本は本キット（template `5co-CI-kit`）。
 > 全媒体共通の**ブランド版**は Drive `5co-CI/CHANGELOG.md` ＋ `BRAND_GUIDELINE.md` が正。
 
+## v3.18.0（2026-11-05）— 開いた直後の同意画面（#ci-consent）
+CIスライドの依頼（2026-11-05）。正本は候補者用の事業プラン資料 v22（若松さん合格）。見た目と文言はそのまま、宛先などを引数にした。
+- **`consent/apply_consent.py` 新設**：`--mode candidate`（既定）は 5co ロゴ＋取扱注意＋「同意して閲覧する」（mailto・宛先 `--to`・件名【破棄同意】）を全面に出し、押すまで本文を隠す。`#static`・JS 無効・印刷のどれでも本文を出さない。`--mode internal` は同意画面なしで、PDF だけ表紙の右上に取扱注意の注記
+- 部品 `consent.css`・`consent_head.js`・`consent.js`・`candidate_print.css`、使い方 `consent/CONSENT_GUIDE.md`
+- キットに個人名を書かない（氏名は `--name` で出力ファイルにだけ入る）。「同意しない」ボタンは v22 に無いため入れていない
+- テスト `tests/ci-consent.test.sh` 追加
+- 版: `VERSION` v3.18.0（2026-11-05）／`template-manifest.json` 2026.11.13。
+
+## v3.17.2（2026-11-05）— 本文の重なりチェッカー（警告のみ）
+CIスライドの依頼（2026-11-05）。check_text_overlap.py と check_fixed_overlap.py は「SVG の中の図形×写真」を比べないため、土井さんの資料 p02 の図のバーが写真に 57×42px 重なっても通っていた。
+- **`check_content_overlap.py` 新設**：本文の見える要素（SVG 内の rect/path/text 等・img・色面・枠線）どうしが 4px を超えて重なったら `OVERLAP`、flex/grid の列から中身がはみ出したら `COL-OVERFLOW`。比べないもの＝祖先と子孫・同じ SVG の中（svg_label_check の担当）・同じ人物 figure の中・折り返したインライン要素。`--warn-only` で exit 0
+- **`ci-gates.sh`**：固定要素の重なりの直後に「本文の重なり」を**警告のみ**で接続（様子を見てから落とす扱いにする）
+- 試作の実測：土井さんの資料 v18/v19 で3件、ほかの3本は0件（誤検出なし）
+- テスト `tests/ci-content-overlap.test.sh` 追加
+- 版: `VERSION` v3.17.2（2026-11-05）／`template-manifest.json` 2026.11.12。
+
+## v3.17.1（2026-11-05）
+- 本文ヘッダーの数字の帯（.ci-hb）の canvas に左→右の linear-gradient マスク（左端0 → 40% 0.5 → 70%以降1）を追加し、ロゴ周りの radial と intersect で重ねる。左は白く消え、右は今の濃さ（若松さん指示 2026-11-05）。文字・ロゴには掛けない。表紙・中扉の数字背景（depth）は不変。
+- 同帯の下端を青いアクセント線（.accent-bar）の下端にそろえ、線より下に数字を出さない（header_mount.js の fitCut が線の位置を測って --hb-cut に入れる・既定 113px・ぼかしなしで切る・canvas の高さは --hb-ch で max(118px, 線) に固定。若松さん指示 2026-11-05）。
+- 版: `VERSION` v3.17.1（2026-11-05）／`template-manifest.json` 2026.11.11。
+
+## 2026-11-05 v3.17.0（試作）— 本文ページのヘッダーに数字の帯・ヘッダーの余白を詰める
+
+若松さん承認（2026-11-05 12:29 JST「ヘッダーごと詰めた版で進めて」・モーションディレクター仕様 rev4・バリアントB）。v3.16.0 の上に載せた。**オプトイン**＝呼ばないデッキの出力は v3.16.0 と同じ（版スタンプの版番号だけが変わる）。
+
+- **`cover_motion/depth/header_motion.css`・`header_mount.js` 新設**：帯は `.slide.ci-hb-on > .ci-hb`（上0・高さ118px・`overflow:hidden` で端を切る・edgeFade 0）。5co ロゴの周りは楕円のマスクで薄く（0.35）、タイトルと青い線の上はエンジンの静かな範囲（calm y .50 h .50）。速さ1.0倍・数字126個・world 1920×202。
+- **ヘッダーの余白（帯のあるページだけ）**：`.hdr{margin-top:-30px;margin-bottom:0}`・`h2.title{margin-bottom:0}`・`.accent-bar{margin:5px 0 16px}`。ロゴ34px・キッカー13px・タイトル27px は不変。青い線の下端 113px・本文の開始 129px（v3.16.0 は 176px・202px）。
+- **`ci_head.py`**：`apply_header_motion(html)`・`header_motion_block()`・CLI `--apply-header-motion deck.html [-o out]`。直下に `.hdr` を持つ本文ページだけ（表紙・中扉・dark・divider・`data-hb="off"` は対象外）。冪等。seed は本文ページ順に 20261105＋n。
+- **エンジン**：`oracle-school-depth.min.js` は v3.16.0 と同じファイル（sha256 d7e802b7…f634・変更なし）。見えているページだけ動く（IntersectionObserver）。reduced-motion・印刷（beforeprint）・`#static`／`html.ci-static` は t=6 の決まった静止画（同じ画素）。
+- **`check_fixed_overlap.py`**：`.ci-hb`（aria-hidden の背景）を背景扱い（BG_SEL）に追加＝帯の canvas とコーナーロゴの重なりを NG にしない。
+- 版: `VERSION` v3.17.0（2026-11-05・試作）／`template-manifest.json` 2026.11.10。
+
+## 2026-11-05 v3.16.0 — 表紙・中扉の数字背景を Boid→奥行きの層（depth）
+
+若松さん指示（2026-11-05 10:51 JST・モーションディレクター経由）。**モーションディレクター審査合格（2026-11-05）**。Oracle 実験#4「奥行きの層」の本番版（大きさ・濃さ・速さの3層）を表紙・中扉の既定エンジンにする。API は Boid と同じ `OracleSchool.mount(canvas,{mode})`＝取り付け・CSS・重なり順・色は v3.15.0 と同じ。v3.15.2 の上に載せた。
+
+- **`ci_head.py`**：`apply_cover_motion` / `style_block` / CLI の既定 engine を `depth` に。`--cover-motion-engine boid`（v3.15.0）と `euclid`（その前）で戻せる。canvas 版の2エンジンは `CANVAS_ENGINES` で同じ経路を通す。
+- **`cover_motion/depth/` 新設**：`oracle-school-depth.min.js`（実験#4 本番圧縮版をバイト列そのまま・gzip 6,331B）・`depth_mount.js`・`depth_motion.css`（Boid と同じ規則）・`digits_cover.htmlpart`・`digits_div.htmlpart`（`data-cm-engine="depth"`）・`depth_motion.py`・`DEPTH_COVER_HANDOFF.md`。
+- **`depth_mount.js`**：中扉（mode=divider）だけ `cfg.staticTime=9`。prefers-reduced-motion の止め絵が中扉 t=9・表紙 t=6 になる（#static・印刷と同じ時刻）。
+- **`ci-gates.sh`**：表紙モーション（depth）の検品 DEPTH_MOTION? を警告のみで追加（depth のデッキでは Boid の検品を代わりに走らせない）。
+- `cover_motion/boid/` と Euclidean は撤去していない。
+- 検証（見本デッキ・決定的キャプチャ 30fps×10秒）：止まったコマ0・跳ね0（表紙・中扉とも）／タイトルが前面／CI3色のみ／reduced-motion で止め絵（表紙 t=6・中扉 t=9）／中扉 seed 20261104。
+- 版: `VERSION` v3.16.0（2026-11-05）。
+- 版: `VERSION` v3.16.0（2026-11-05）／`template-manifest.json` 2026.11.9。
+
+## 2026-11-05 v3.15.2 — 人物画像の alt 定型を「ペルソナ名（架空の人物）」に
+
+若松さん決定（2026-11-05 11:03 JST・CIスライド経由）。
+
+- **定型の置き換え**：`COPY_GUIDE.md` ルール10・`FIGURES_GUIDE.md`・`DIGEST_GUIDE.md`・`digest_person/photo/cutouts/README.md`・`digest_person/markup_example_p06.html` の「架空の人物・イメージ」を「ペルソナ名（架空の人物）」（例：「Amazonユーザー（架空の人物）」）に。切り抜きは「ペルソナ名（架空の人物・背景なし切り抜き）」。
+- **`photo_caption_check.py`**：`alt` に「イメージ」が残っていても警告（落とさない）。
+- 版: `VERSION` v3.15.2（2026-11-05）／`template-manifest.json` 2026.11.8。
+
+## 2026-11-05 v3.15.1 — 人物写真のキャプションと alt はペルソナで書く
+
+若松さん決定（2026-11-05 10:46 JST・CIスライド経由）。
+
+- **`COPY_GUIDE.md` ルール11**：人物写真のキャプションと `alt` に「イメージ写真」と書かず、写真が表すペルソナ（例：Amazonユーザー、コンサルタント）を書く。呼び方はデッキ内の表記に従い、無ければ役割名。
+- **`V3.2_FORMAT.md`**：画像アセットの項から参照。
+- **`photo_caption_check.py` 新設・`ci-gates.sh`「写真のキャプション」**：HTML 全文の「イメージ写真」を警告（落とさない）。
+- 版: `VERSION` v3.15.1（2026-11-05）／`template-manifest.json` 2026.11.7。
+
+## 2026-11-04 v3.15.0 — 表紙・中扉の数字背景を Euclidean→Boid
+
+若松さん承認（2026-11-04 19:15 JST・CIスライドのチャット）。モーションディレクター再審査合格（止まったコマ0・跳ね0・CI3色・reduced-motion で止め絵・gzip lib 約6.6KB＋mount 449B）。
+
+- **`ci_head.py`**：`apply_cover_motion` の既定 engine を `boid` に。旧版は `--cover-motion-engine euclid`。
+- **`cover_motion/boid/` 新設**：`oracle-school.min.js`・`boid_mount.js`・`boid_motion.css`・`digits_cover.htmlpart`・`digits_div.htmlpart`・`boid_motion.py`・`BOID_COVER_HANDOFF.md`。
+- **`ci-gates.sh`**：表紙モーション（Boid）の検品を警告のみで追加。
+- PDF 用の止め絵は表紙 t=6・中扉 t=9。
+- 版: `VERSION` v3.15.0（2026-11-04）／`template-manifest.json` 2026.11.6。
+
+## 2026-11-03 v3.14.2 — 「Shelpha」は出してよい（出典欄・フッター版スタック）／ほかの仕入れ先名は引き続き禁止
+
+若松さん決定（2026-11-03 02:36 JST・Template へ直接「Shelphaの表記は出していいです」「バージョンも確認する必要があります」。8:35 にコピーライター経由でも同趣旨）。**v3.14.1 で外した Shelpha を戻した**（ほかの仕入れ先名の扱いは 11-02 のまま）。CSS トークン・寸法・レイアウトは不変（見た目はフッター1行の文言だけが変わる）。
+
+- **フッター版スタックの既定を戻した**（§5.5・`ci_head.footer_stack_label`／`footer_stack_css`／`style_block`）：`CI vX.Y · Shelpha <版> · Template YYYY.MM.N  ·  © 2026 5co.`。版が見えること自体が「版も確認する」ための手がかり。伏せると決めた案件だけ `ci_head.py --no-shelpha`（Python は `style_block(shelpha=False)`）で外す。`--internal` / `internal=True` は v3.14.1 の名残の**別名として受け付ける**＝既定と同じで何も変えない（既存の呼び出しは壊れない）。
+- **語彙ゲート**（`vocab_check.py`）：既定の仕入れ先名から **Shelpha（シェルファ）を外した**＝出典欄「出典：Shelpha（取得日）」も版スタックも通る。DMT・Acorn-i・Ignite・AMZ-POS とその言い換えは**これまでどおり HTML 全文**（`<style>`・`<script>`・コメント・属性）を見て落とす。伏せる案件向けに `--ban-shelpha` を足した（Shelpha も当社NG語に戻す。`ci_head.py --no-shelpha` と対で使う）。`--allow-vendor` は不変。
+- **SERP の検品**（`serp/serp_check.py`）：同じく Shelpha を E1（`BANNED`）・E5（`VENDOR_PATTERNS`）の既定から外し、`--ban-shelpha` で戻せるようにした。**SERP ページの出所の行は不変**＝E2 が「出所：Amazon.co.jp検索結果（取得日時・条件）」だけを許すので、出所に Shelpha と書けばこれまでどおり落ちる。
+- **`ci-gates.sh --ban-shelpha`**：語彙ゲートと SERP 検品に `--ban-shelpha` を渡す（案件の引き継ぎで Shelpha も伏せると決めたデッキ用）。
+- **`serp/serp_page.py`**：組み立てを止める語から Shelpha を外した（DMT・Acorn-i・Ignite・AMZ-POS・推計 はそのまま）。見本 `serp/sample/` を組み直し、フッターに `Shelpha 9.1.0` が戻った（目視確認用 `qa/*.jpg` も撮り直し）。
+- 規定の文書を 11-03 の決定に合わせた：`SLIDE_DESIGN_GUIDELINES` §5.5・`COPY_GUIDE.md` ルール10・`FIGURES_GUIDE.md`・`V3.2_FORMAT.md`・`DIGEST_GUIDE.md`・`vocab/README.md`・`brand_guidebook/`・`cover_motion/COVER_MOTION_HANDOFF.md`・`footer_stack_check.py`。
+- **v3.14.1 で消した仕入れ先名は戻していない**：`ci-format-v3.2.css` のCSSコメント（旧「IGNITE…」）、`5co_biz_briefing_template.html` 本文の「当社の補正データ」はそのまま。
+- 版: `VERSION` v3.14.2（2026-11-03）／`template-manifest.json` 2026.11.5。
+- 既知の積み残し：`tests/ci-figs.test.sh` は main から落ちたまま（本版の対象外）。毎ターン注入される本体の指示ファイル（保護対象）の版スタック行は管理者の適用待ち。
+
+## 2026-11-02 v3.14.1 — 社外向けHTMLから仕入れ先名を除去／語彙ゲートをHTML全文に拡大
+
+若松さん決定（2026-11-02）「社外に出るものには Shelpha・DMT・Acorn-i・Ignite・AMZ-POS の名前も推計のしかたも書かない（出所の注記も含む）」を、**配られる HTML の中身**にも通した。CSS トークン・寸法・レイアウトは不変（見た目は変わらない）。
+
+- **CSSコメントの事業者名を外した**：`ci-format-v3.2.css` の「カテゴリ名下の推計シェア（参考・IGNITE昨年同月×YoY分母）」→「カテゴリ名下の参考シェア（昨年同月比の分母）」。このコメントは `ci_head.py` が CSS をそのまま `<style>` に入れるため、**キットで作った全デッキに載っていた**。footer の説明コメントからも事業者名を外し、同じ文面を持つ `5co_biz_briefing_template.html` と `serp/sample/` の見本も直した。
+- **営業資料テンプレの本文**：`5co_biz_briefing_template.html` の「Shelpha（当社補正データ）で…実測ベースで推計」→「当社の補正データで…把握」、OODA の O 一覧「Shelpha（当社補正データ＝市場・競合カテゴリーデータ）」→「当社の補正データ（市場・競合カテゴリーデータ）」。
+- **語彙ゲートを HTML 全文に拡大**（`vocab_check.py`・`ci-gates.sh` の「語彙帳」）：仕入れ先名は表示テキストだけでなく **`<style>`・`<script>`・HTML/CSS/JS のコメント・タグの属性**まで見て、**警告ではなく落とす**（当社NG語）。言い換え（シェルファ・アコーン・イグナイト・Acorn i・AMZPOS 等）も拾う。見つかった行番号を出す。社内だけの資料は `--allow-vendor` で外せる。`--selftest` に「CSSコメントに隠した名前が落ちる／きれいな版は通る／`ignited`・`POS` 単体で誤検知しない／キットが配る CSS・テンプレに名前が残っていない」を追加した。
+- **フッター版スタックから Shelpha ラベルを外した**（§5.5・`ci_head.footer_stack_label`／`footer_stack_css`）：版スタックは**全ページの左下**に出るため、`CI vX.Y · Shelpha <版> · Template <版>` のままだと社外デッキの全頁に基盤名が載っていた。既定を `CI vX.Y · Template YYYY.MM.N` にした（CI版・Template版のラベルは残す）。社内だけで回す資料は `ci_head.py --internal`（Python は `style_block(internal=True)`）で足せるが、**その HTML は社外に配らない**。`SHELPHA_VERSION` ファイルは社内用の版の正本として残す。`footer_stack_check.py`・`tests/ci-footer-stack.test.sh` の期待値も「Shelpha を出さない／`--internal` のときだけ出る」に直した。
+- **語彙ゲートはフッターも見逃さない**：`vocab_check.py` の版スタック除外（`FOOTER_STACK`）をやめ、**HTML のどこにあっても「Shelpha」は落とす**。
+- **SERP の検品も HTML 全文に拡大**（`serp/serp_check.py`・`SERP_VENDOR`）：本文しか見ていなかったため、フッターの版スタック・`<style>` のCSSコメント・`<script>`・HTML コメント・タグの属性に残った名前を取りこぼしていた。全文を見て**落とす**（行番号つき）。`data:` の画像本体だけは見ない（base64 の偶然の一致で落とさないため）。`推計`・`推定` は従来どおり表示テキストの検査のまま。
+- **`ci-gates.sh --serp` の「対象ゼロ」**：`--serp` と言ったのに `data-serp-page` のページが1枚も無いとき、これまでは黙って通っていた（マーカーの付け忘れ・組み立て失敗に気づけない）。`SERP_SHOT? 対象ゼロ: data-serp-page のページがありません` を**警告**で出し、`--serp --strict` のときだけ落とす。`--serp` を付けないデッキの判定は不変。
+- **見本を組み直した**（`serp/sample/`）：`serp_page.py` で作り直し、フッターの `Shelpha 9.1.0` と共有CSSの「推計…IGNITE」コメントが見本の HTML から消えた（目視確認用の `qa/*.jpg` も撮り直し）。`ci-gates.sh --serp` 0件。
+- 規定の文書も社外向けの書き方に合わせた：`SLIDE_DESIGN_GUIDELINES` §5.5・`CLAUDE.md`・`V3.2_FORMAT.md`・`FIGURES_GUIDE.md`・`DIGEST_GUIDE.md`・`vocab/README.md`・`brand_guidebook/`・`cover_motion/COVER_MOTION_HANDOFF.md` の「出所の表記は Shelpha」を「仕入れ先名・基盤名は書かない（＝『当社の補正データ』等）」に直した。
+- 内部だけの文書・検査（`COPY_GUIDE.md`・`FIGURES_GUIDE.md` §2-4・`vocab/README.md`・本 CHANGELOG・`vocab_check.py`／`serp/serp_check.py`／`product_image_check.py` の禁止語リスト・`tests/`）は、**規定そのものを説明する／検査するために**名前を残す。社外に配られるファイルではない。
+- 既知の積み残し（本版の対象外）：`tests/ci-figs.test.sh` は main から落ちたまま（FIGURES_GUIDE の質問④）。
+
+## 2026-11-02 v3.14.0 — Amazon検索順位の根拠ページ（SERP）＋前回比
+
+「一般キーワードで、いま何位に入っているか」を**実物の検索結果の画面**で示すページ型を kit に入れた。CSS トークン・寸法・既存の検査は不変（このページ型を使わないデッキの出力は変わらない）。規定の正＝`FIGURES_GUIDE.md` §2-4、道具＝`serp/`（索引＝`serp/README.md`）、見本＝`serp/sample/`。
+
+- **ページ型**（`serp/serp_page.py`・設定の雛形 `serp/SERP_PAGE_TEMPLATE.yaml`）：ヘッダーはロゴだけ（ブランド｜Amazon）／見出しは「〜に**入っている**」（1回の時点観測なので「入った」とは書かない）／琥珀の「このページの要点」＋根拠パネル「順位の内訳と出所」／**キーワードごとに実物の検索結果の帯を1本**（顧客の商品＝実線の枠＋順位バッジ・半透明の色を重ねない／スポンサー枠＝点線の枠＋「スポンサー n」）／行ラベル **キーワード／順位／判定**／上位 N 位の外のキーワードは**施策と対のギャップ枠**（施策が無ければ「施策（案）要確認」）。帯の座標は `results.json` のカード座標から決める（手で座標を書かない＝`serp/serp_strips.py`）。
+- **取得**（`serp/serp_shot.py`・指定の雛形 `serp/SERP_TARGETS_TEMPLATE.yaml`）：ログアウト・PC・届け先固定（郵便番号は**1文字ずつキー入力**。`fill()` では Amazon 側に値が渡らない）・**表示された届け先が違えば検索しない**・1回**5ページまで**・間隔**12秒以上**（yaml で緩められない）・**CAPTCHA で停止**（解かない・回避しない）・UA の末尾で名乗る・**共有のログイン済みブラウザは使わない**（実行前に落とす）・**検索語は一般語だけ**（ブランド名入りは落とす）。毎回 `results.json` と日付入りの写しを書く。順位＝**スポンサー枠を除いたオーガニック順位**で、「Amazonのおすすめ」「ベストセラー」のバッジが付いたカードは**数える**（記録も残す）。
+- **前回比**（`serp/serp_diff.py`・新規）：同じ条件で撮った2回の `results.json` を突き合わせ、キーワード×商品の**前回順位／今回順位／↑n・↓n・→／圏外の出入り**と**両方の取得日時**を出す（テキスト・Markdown・JSON）。条件（ログアウト・届け先・端末・画面幅・言語）が違う2回は既定で比べずに落とす。ページは順位の右に小さく `↑n`／`↓n`／`→` を出し、「図の読み方」に凡例を入れる。繰り返し撮る段取り（同じ時刻・日付フォルダ・圏外の回も残す）＝`serp/README.md`。
+- **配布用の写し**（`serp/serp_redact.py`・新規）：社内の原本から**郵便番号・番地・Cookie 名・UA を落として区までにする**（順位・取得日時は不変）。デッキのフォルダに置くのはこの写し。
+- **出所はこのページ型だけ1行に固定**（若松さん決定 2026-11-02）：**「出所：Amazon.co.jp検索結果（取得日時・条件）」だけ**。ページ・見本・ビルダー出力のどこにも Shelpha・データ事業者名（DMT・Acorn-i・Ignite・AMZ-POS 等）・推計の手口を書かない。`serp/serp_check.py` が**落とす**（警告ではない）。`serp_page.py` も組み立ての最後に同じ検査をかけ、違反があればビルドを止める。
+- **ゲート**（`ci-gates.sh --serp`・`serp/serp_check.py`・新規）：デッキに `data-serp-page` があればオプション無しでも走る。**落とす**＝出所に書けない語・出所の書き方違い・郵便番号・外部 URL の画像。**警告 `SERP_SHOT?`**＝`data-serp-at`／`data-serp-cond` 無し・注記の文言欠け・帯の `data-serp-term`／`data-serp-rank` 無し・「入った」表記・取得日が14日より古い。`PRODUCT_IMG?` とは別に数える。
+- **商品画像との関係**：SERP の帯に写るのは Amazon のサムネイルで他社商品も混ざり SKU の代表画像にならないため、`product_image_check.py` は `data-serp-page`／`data-serp-shot` を対象外にした（`dg-photo` と同じ扱い）。
+- **ページに出す注記**（文言を変えない）：取得日時／Amazon.co.jp／ログアウト状態のPC／届け先は**区まで**（郵便番号はページにも画像にも出さない＝帯は検索窓から右だけを切る）／「スポンサー広告枠を除いた順位」／「順位の要因は、このデータからは特定できない」。
+- **数値の出どころ**：ページの数字は `results.json`（と前回比）だけ。設定の文言に `results.json` に無い順位が書いてあれば `serp_page.py` は組み立てを止める。
+- **見本** `serp/sample/`：WELLA OPI の 2026-11-02 取得（前回比は 2026-11-01）。`ci-gates.sh --serp` は 0 件。前回比は上がった8・下がった8・変わらず1。原本（フルページ PNG・raw HTML）は郵便番号が写るため同梱しない。
+- 由来：`strategy/_ci_ops/amazon_serp_shot/`（実現可能性 2026-10-31・届け先ステップの修正 2026-11-01・本番取得 11-01／11-02）と `slides/opi-amazon-serp-evidence-2026-11-01/` の試作を kit に一般化したもの。
+- テスト：`tests/ci-serp.test.sh` 新設（道具の selftest 6本・ゲート接続・出所ルールで落ちる・`SERP_SHOT?` が出る・`PRODUCT_IMG?` と別・見本が 0 件・VERSION／CHANGELOG／FIGURES_GUIDE の記載・kit に顧客の値を置いていないこと）。`serp/test_serp_mock.py` は 127.0.0.1 の模擬ページで取得手順を通し確認する（unit 9 件＋6 シナリオ・Amazon に通信しない）。
+
 ## 2026-11-01 v3.13.3 — Amazon Ads 語彙帳を kit に同梱／語彙帳の検査 VOCAB?（当社NG語は落とす）
 
 - **語彙帳 `vocab/`**（スライドやコピーを書くときはこの語彙帳に合わせる・正本は template）：コピーライター Bot が Amazon Ads の公開ページ（ja-jp／en-us／zh-cn）から作った 98 概念の語彙帳 v0.2（2026-10-30）の4ファイル＝`VOCAB_BOOK.md`・`VOCAB_BOOK_product-solution-guide.md`・`vocab_book.csv`・`vocab_book_product-solution-guide.csv`。日本語（Amazon 表記）・English・中文・定義（5 co. の要約）・当社で使う／使わない表記・出典 URL。生成元の収集 DB・生 HTML・スクリプトは git に入れない（共用作業箱に置く）。各 md 冒頭の「正本」行を template の `5co-CI-kit/vocab/` に、CSV への参照を同じフォルダに書き換えた（表の中身は不変）。使い方＝`vocab/README.md`。

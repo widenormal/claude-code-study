@@ -21,7 +21,7 @@
 | 表紙 | crystal 背景（`--crystal`）＋ **白** 数字 |
 | 中扉 | **白背景**＋クリスタルブルー `#C3D7EE` 数字（far-layer hide なし） |
 | 球（sphere） | **無し**（NO sphere） |
-| 命名 | **Ignite 名禁止**（データ元は Shelpha） |
+| 命名 | **Ignite 名禁止**（データ元は Shelpha＝2026-11-03 に表記可。DMT・Acorn-i・AMZ-POS も書かない＝2026-11-02） |
 
 ファイル：
 
@@ -82,7 +82,7 @@ python3 5co-CI-kit/cover_motion/cover_motion.py --css
 
 - **Eddy 4-layer / gust / v1.1 二軸**など不採用案は kit に入れない（履歴のみ・demoted）
 - GIF・動画・大きな埋め込み画像を足さない
-- Ignite 社名をスライドに書かない（Shelpha）
+- Ignite・DMT・Acorn-i・AMZ-POS をスライドに書かない（データ元は Shelpha と書く・2026-11-03）
 
 ## 検品
 

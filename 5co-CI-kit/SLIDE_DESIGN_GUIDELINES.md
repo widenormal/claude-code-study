@@ -93,9 +93,16 @@
 - **左下（版スタック → コピーライト）**: `CI vX.Y · Shelpha <版> · Template YYYY.MM.N  ·  © 2026 5co. All rights reserved.`
   - 版スタックは**コピーライトの左側**に置く（同一行・区切りは中黒 `·`）。
   - 正本:
-    - CIスライド（キット）版 = `5co-CI-kit/VERSION` 先頭行（例 `v3.10`）
+    - CIスライド（キット）版 = `5co-CI-kit/VERSION` 先頭行（例 `v3.14`）
     - Shelpha 版 = `5co-CI-kit/SHELPHA_VERSION` 先頭の非コメント行（未設定時は `—`。推測禁止）
     - Template 版 = `template-manifest.json` の `template_version`（無ければ `.claude/.template-state.json`）
+  - **Shelpha 版ラベルは出す（若松さん決定 2026-11-03・v3.14.2）**: 「Shelpha の表記は出していい・版も確認する必要がある」＝
+    顧客向けデッキも含めて既定で出す（11-02 に外した v3.14.1 を戻した）。版が見えることが確認の手がかりになる。
+    一方、**ほかの仕入れ先名（DMT・Acorn-i・Ignite・AMZ-POS）と推計のしかたは引き続きどこにも書かない**
+    （`ci-gates.sh` の語彙ゲート `VOCAB?` が HTML 全文で落とす）。
+    案件の引き継ぎで Shelpha も伏せると決めた資料だけ `ci_head.py --no-shelpha`
+    （Python は `style_block(shelpha=False)` / `footer_stack_label(shelpha=False)`）で外し、検品も
+    `ci-gates.sh --ban-shelpha` と対で使う。`--internal` / `internal=True` は v3.14.1 の名残の別名＝既定と同じ。
   - 実装: `ci_head.py` が `style_block()` / `--css` 末尾で `.slide::before` の content を上書き注入する（`python3 ci_head.py --footer-stack` で確認可）。静的CSS単体は copyright のみのフォールバック。
   - `.period`（日進捗）がある頁は左を日進捗に譲り、版スタック＋copyright は中央右（`right:230px`）。
 - **右下**: `CONFIDENTIAL ・ NN`（頁番号は2桁ゼロ詰め。機密でない公開資料は CONFIDENTIAL を外し頁のみ）
