@@ -261,7 +261,7 @@ svg.corner{width:102px; top:15mm; right:50px; height:auto;}
    上辺揃え＋nm固定高(34px)＋box固定高(26px)で目標/実績ボックスは常に整列。可変なのはカード下端のみ */
 .okr .sgrp-row::before{content:""; position:absolute; top:0; left:81px; right:81px; border-top:1px solid var(--ln);}
 .okr li.emg{padding-top:19px;}
-/* カテゴリ名下の推計シェア（参考・IGNITE昨年同月×YoY分母） */
+/* カテゴリ名下の参考シェア（昨年同月比の分母） */
 .okr .nd .shr{display:block; font-size:8.5px; font-weight:600; color:var(--ink-85); margin-top:1px; line-height:1.2; white-space:nowrap; text-align:center;}
 /* 5担当ブランドのブロックを大きく見せる（中核アグリゲート強調） */
 .okr .nd.big{min-width:246px;}
@@ -801,7 +801,7 @@ table.skg tr.brsp td{ border:none!important; background:transparent!important; h
   <div class="arw">→</div>
   <div class="card"><span class="en">2. DATA</span><h3>データ基盤で計測</h3>
     <ul><li>広告・POS（販売実績）を毎日自社データ基盤に統合し、管理画面と突合できる状態で運用</li>
-    <li>Shelpha（当社補正データ）でカテゴリー市場規模・シェアを実測ベースで推計</li>
+    <li>当社の補正データでカテゴリー市場規模・シェアを把握</li>
     <li>AMC（Amazonの分析クラウド）をブランド別に運用</li></ul></div>
   <div class="arw">→</div>
   <div class="card"><span class="en">3. MANAGEMENT</span><h3>目標と照らして管理</h3>
@@ -842,7 +842,7 @@ table.skg tr.brsp td{ border:none!important; background:transparent!important; h
     <div class="oo-t">観察・データ収集</div>
     <ul>
       <li>広告実績データ（自社DWH）</li>
-      <li>Shelpha（当社補正データ＝市場・競合カテゴリーデータ）</li>
+      <li>当社の補正データ（市場・競合カテゴリーデータ）</li>
       <li>ECモール上の商品データ（Amazon・楽天）</li>
       <li>Amazon月間検索ボリューム</li>
       <li>過去の定例会 議事録・ナレッジ</li>

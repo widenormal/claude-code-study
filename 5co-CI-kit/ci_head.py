@@ -30,6 +30,8 @@ ci_head.py — 正典CSS連結の唯一の標準方式（共通HEAD）
   python3 5co-CI-kit/ci_head.py --files    # 連結対象ファイル一覧
   python3 5co-CI-kit/ci_head.py --version  # 現行版タグ（例: v3.3）
   python3 5co-CI-kit/ci_head.py --footer-stack  # フッター版スタック1行（CI / Shelpha / Template）
+  python3 5co-CI-kit/ci_head.py --no-shelpha    # 版スタックから Shelpha 版を外す（伏せると決めた案件だけ）
+                                                #   --internal は v3.14.1 の名残の別名＝既定と同じ（何も変えない）
   python3 5co-CI-kit/ci_head.py --cover-ci # 表紙CIコンセプトブロック（.cover-ci・全表紙必須）
   python3 5co-CI-kit/ci_head.py --lang en  # 英語版（多言語版）の級数スケールを連結（既定0.85倍）
   python3 5co-CI-kit/ci_head.py --lang en --lang-scale 0.8   # 実測で足りなければ段階的に下げる
@@ -38,6 +40,10 @@ ci_head.py — 正典CSS連結の唯一の標準方式（共通HEAD）
   python3 5co-CI-kit/ci_head.py --no-cover-motion  # 表紙モーションの CSS（既定 ON・v3.12.6）を付けない
   python3 5co-CI-kit/ci_head.py --apply-cover-motion deck.html [-o out.html]
                                                # 組み上がったデッキの表紙・中扉に cm-field＋数字断片を足す（v3.12.6）
+  python3 5co-CI-kit/ci_head.py --cover-motion-engine euclid --apply-cover-motion deck.html
+                                               # 数字背景を従来の Euclidean に戻す（既定は depth・2026-11-05）
+  python3 5co-CI-kit/ci_head.py --cover-motion-engine boid --apply-cover-motion deck.html
+                                               # 数字背景を v3.15.0 の Boid に戻す
 
 スマホ幅の縮小（MOBILE_FIT・v3.12.6・既定 ON）:
   画面幅がスライド幅（297mm）より狭いときだけ、.slide を CSS zoom で幅に合わせて縮める
@@ -50,6 +56,9 @@ ci_head.py — 正典CSS連結の唯一の標準方式（共通HEAD）
   付けない表紙の見た目は不変）。表紙（.cover-full）と中扉（.cover-full.pd-divider）に cm-field と
   数字断片を足すのは apply_cover_motion(html)（ビルダーの最後に1回）。足し忘れは
   ci-gates.sh の COVER_MOTION? 警告で分かる。正＝cover_motion/COVER_MOTION_HANDOFF.md。
+  数字背景の実装は3つ: engine="depth"（既定・2026-11-05・Oracle 実験#4「奥行きの層」の canvas を
+  インライン埋め込み）、engine="boid"（v3.15.0・群れの canvas）、engine="euclid"（従来の CSS keyframes＋
+  SVG 620桁）。色・レイアウト・重なり順は同じ。正＝cover_motion/depth/DEPTH_COVER_HANDOFF.md。
 
 動く資料（v3.9・任意）:
   会議で「その内訳は？」に、押せば根拠が開く資料で答えるための層。VERSION の interactive: 行が
@@ -112,10 +121,16 @@ def head_css() -> str:
     return "\n\n".join(parts)
 
 
-# ---------------------------------------------------------------- フッター版スタック（2026-10-06）
+# ---------------------------------------------------------------- フッター版スタック（2026-10-06／2026-11-03改）
 # コピーライトの左側に CIキット版・Shelpha版・Template版を出す（SLIDE_DESIGN_GUIDELINES §5.5）。
 # 実値はここで解決し、style_block / --css の末尾で .slide::before の content を上書きする。
 # 静的CSS単体（ci_head 未経由）は copyright のみ＝意図的フォールバック。
+# 2026-11-03（若松さん決定・v3.14.2）: 「Shelpha の表記は出していい」「版も確認する必要がある」＝
+# 顧客向けデッキも含めて Shelpha 版ラベルを**既定で出す**（11-02 に外した v3.14.1 を戻した）。
+# 仕入れ先名（DMT・Acorn-i・Ignite・AMZ-POS）と推計のしかたは引き続きどこにも書かない。
+# 案件側の引き継ぎで Shelpha も伏せると決めた資料だけ shelpha=False（CLI は --no-shelpha）で外す
+# （その資料は ci-gates.sh --ban-shelpha と対で使う）。--internal / internal=True は v3.14.1 の名残で、
+# 既定（Shelpha を出す）と同じ＝受け付けるが何も変えない。
 
 
 def shelpha_version() -> str:
@@ -157,14 +172,21 @@ def template_version() -> str:
     return "—"
 
 
-def footer_stack_label() -> str:
-    """フッター左に出す版スタック1行（例: 'CI v3.10 · Shelpha — · Template 2026.10.1'）。"""
-    return f"CI {version_tag()} · Shelpha {shelpha_version()} · Template {template_version()}"
+def footer_stack_label(shelpha: bool = True, internal: bool = None) -> str:
+    """フッター左に出す版スタック1行（例: 'CI v3.14.2 · Shelpha 9.1.0 · Template 2026.11.5'）。
+
+    shelpha=False（CLI は --no-shelpha）のときだけ Shelpha 版を落とす（伏せると決めた案件だけ）。
+    internal は v3.14.1 の名残の別名＝True でも既定と同じ（受け付けるが何も変えない）。
+    """
+    if internal:
+        shelpha = True
+    mid = f" · Shelpha {shelpha_version()}" if shelpha else ""
+    return f"CI {version_tag()}{mid} · Template {template_version()}"
 
 
-def footer_stack_css() -> str:
+def footer_stack_css(shelpha: bool = True, internal: bool = None) -> str:
     """版スタック＋copyright を .slide::before に焼き込む上書きCSS。"""
-    label = footer_stack_label()
+    label = footer_stack_label(shelpha, internal)
     if '"' in label or "\\" in label or "\n" in label:
         raise ValueError(f"footer stack label に CSS content で使えない文字: {label!r}")
     copy = "© 2026 5co. All rights reserved."
@@ -177,9 +199,9 @@ def footer_stack_css() -> str:
     ])
 
 
-def footer_stack_html() -> str:
+def footer_stack_html(shelpha: bool = True, internal: bool = None) -> str:
     """任意: 各 .slide に置く HTML 版（CSS content 注入と併用しない）。"""
-    return f'<div class="ci-stack" aria-hidden="true">{footer_stack_label()}</div>'
+    return f'<div class="ci-stack" aria-hidden="true">{footer_stack_label(shelpha, internal)}</div>'
 
 
 
@@ -316,16 +338,45 @@ def mobile_fit_block() -> str:
 # ---------------------------------------------------------------- 表紙モーション（v3.12.6・既定 ON）
 # 2026-10-30 CIスライド依頼: ビルダーが表紙に cm-field を付け忘れる。CSS は style_block で既定連結し、
 # cm-field＋数字断片は apply_cover_motion(html) で足す（kit のファイルを読む＝コピーしない）。
+# 2026-11-04 試作: 数字背景の実装を2つ持つ。engine="boid"（既定・OracleSchool の canvas）と
+# engine="euclid"（従来の layer8_spin_spread_v3・CSS keyframes＋SVG 620桁）。見た目の色・重なり順は同じ。
 COVER_MOTION_DIR = KIT / "cover_motion"
+BOID_MOTION_DIR = COVER_MOTION_DIR / "boid"
+# 2026-11-05 試作: 既定を Oracle 実験#4「奥行きの層」（depth）に。Boid は --cover-motion-engine boid で戻せる。
+DEPTH_MOTION_DIR = COVER_MOTION_DIR / "depth"
+COVER_MOTION_ENGINE = "depth"
+CANVAS_ENGINES = ("depth", "boid")  # OracleSchool の canvas を使うエンジン（取り付け・CSS は同じ）
 _SECTION_OPEN = re.compile(r'<section\b([^>]*?)\bclass="([^"]*)"([^>]*)>')
 
 
-def _cover_motion_module():
+def _load_module(name: str, path):
     import importlib.util
-    spec = importlib.util.spec_from_file_location("cover_motion", str(COVER_MOTION_DIR / "cover_motion.py"))
-    cm = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(cm)
-    return cm
+    spec = importlib.util.spec_from_file_location(name, str(path))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _cover_motion_module():
+    return _load_module("cover_motion", COVER_MOTION_DIR / "cover_motion.py")
+
+
+def _boid_motion_module():
+    return _load_module("boid_motion", BOID_MOTION_DIR / "boid_motion.py")
+
+
+def _depth_motion_module():
+    return _load_module("depth_motion", DEPTH_MOTION_DIR / "depth_motion.py")
+
+
+def _canvas_module(engine: str):
+    return _depth_motion_module() if engine == "depth" else _boid_motion_module()
+
+
+def _check_engine(engine: str) -> str:
+    if engine not in ("depth", "boid", "euclid"):
+        raise ValueError(f"表紙モーションの engine は depth / boid / euclid のどれか: {engine!r}")
+    return engine
 
 
 def cover_motion_css() -> str:
@@ -340,22 +391,74 @@ def cover_motion_block() -> str:
     return f'<style id="ci-cover-motion">\n/* ==== cover_motion/cover_motion.css（正典 5co-CI-kit・編集禁止） ==== */\n{cover_motion_css()}\n</style>'
 
 
-def apply_cover_motion(html: str, dividers: bool = True, check: bool = True):
+def boid_motion_css() -> str:
+    """boid_motion.css（.cm-field にしか効かない）。無ければ FileNotFoundError（黙って外さない）。"""
+    f = BOID_MOTION_DIR / "boid_motion.css"
+    if not f.is_file():
+        raise FileNotFoundError(f"boid_motion.css が kit に見つかりません: {f}（kit コピーが不完全）")
+    return f.read_text(encoding="utf-8")
+
+
+def boid_motion_block() -> str:
+    return f'<style id="ci-cover-motion-boid">\n/* ==== cover_motion/boid/boid_motion.css（正典 5co-CI-kit・編集禁止） ==== */\n{boid_motion_css()}\n</style>'
+
+
+def boid_script_block() -> str:
+    """OracleSchool 本体＋取り付けを単一HTMLに埋め込む <script>（外部ファイル参照なし）。"""
+    return (f'<script id="ci-cover-motion-boid-js">\n'
+            f'/* ==== cover_motion/boid/oracle-school.min.js + boid_mount.js（正典 5co-CI-kit・編集禁止） ==== */\n'
+            f'{_boid_motion_module().script_js()}\n</script>')
+
+
+def depth_motion_css() -> str:
+    """depth_motion.css（.cm-field にしか効かない）。無ければ FileNotFoundError（黙って外さない）。"""
+    f = DEPTH_MOTION_DIR / "depth_motion.css"
+    if not f.is_file():
+        raise FileNotFoundError(f"depth_motion.css が kit に見つかりません: {f}（kit コピーが不完全）")
+    return f.read_text(encoding="utf-8")
+
+
+def depth_motion_block() -> str:
+    return f'<style id="ci-cover-motion-depth">\n/* ==== cover_motion/depth/depth_motion.css（正典 5co-CI-kit・編集禁止） ==== */\n{depth_motion_css()}\n</style>'
+
+
+def depth_script_block() -> str:
+    """OracleSchool（奥行きの層）本体＋取り付けを単一HTMLに埋め込む <script>（外部ファイル参照なし）。"""
+    return (f'<script id="ci-cover-motion-depth-js">\n'
+            f'/* ==== cover_motion/depth/oracle-school-depth.min.js + depth_mount.js（正典 5co-CI-kit・編集禁止） ==== */\n'
+            f'{_depth_motion_module().script_js()}\n</script>')
+
+
+def _canvas_blocks(engine: str):
+    """(style の id, style ブロック関数, script の id, script ブロック関数)。"""
+    if engine == "depth":
+        return "ci-cover-motion-depth", depth_motion_block, "ci-cover-motion-depth-js", depth_script_block
+    return "ci-cover-motion-boid", boid_motion_block, "ci-cover-motion-boid-js", boid_script_block
+
+
+def apply_cover_motion(html: str, dividers: bool = True, check: bool = True,
+                       engine: str = COVER_MOTION_ENGINE):
     """組み上がったデッキの表紙（.cover-full）と中扉（.cover-full.pd-divider）に cm-field＋数字断片を足す。
 
     返り値 (html, {"cover": n, "divider": n})。既に cm-field のある節は触らない（冪等）。
-    CSS が無ければ </head> の直前に1回だけ足す（style_block 既定で入っていれば足さない）。
-    check=True なら cover_motion.py --check 相当（620/620・必須 keyframes）を先に通す。
+    engine="depth"（既定・2026-11-05）は奥行きの層、"boid"（v3.15.0）は Boid の canvas＋インライン JS、
+    "euclid" は従来の SVG 620桁。CSS（と canvas 版の JS）が無ければ </head> の直前に1回だけ足す（style_block 既定で入っていれば足さない）。
+    check=True なら各エンジンの --check 相当を先に通す。
     """
-    cm = _cover_motion_module()
+    engine = _check_engine(engine)
+    mod = _canvas_module(engine) if engine in CANVAS_ENGINES else _cover_motion_module()
     if check:
         import contextlib, io
         with contextlib.redirect_stdout(io.StringIO()):
-            rc = cm.cmd_check()
+            rc = mod.cmd_check()
         if rc != 0:
-            raise ValueError("cover_motion --check NG（kit の cover_motion/ が壊れている）")
-    dcov = cm.DIGITS_COVER.read_text(encoding="utf-8")
-    ddiv = cm.DIGITS_DIV.read_text(encoding="utf-8")
+            raise ValueError(f"{engine} --check NG（kit の cover_motion/ が壊れている）")
+    if engine in CANVAS_ENGINES:
+        dcov = mod.PART_COVER.read_text(encoding="utf-8")
+        ddiv = mod.PART_DIV.read_text(encoding="utf-8")
+    else:
+        dcov = mod.DIGITS_COVER.read_text(encoding="utf-8")
+        ddiv = mod.DIGITS_DIV.read_text(encoding="utf-8")
     n = {"cover": 0, "divider": 0}
 
     def sec(m):
@@ -370,21 +473,88 @@ def apply_cover_motion(html: str, dividers: bool = True, check: bool = True):
                 + (ddiv if div else dcov))
 
     out = _SECTION_OPEN.sub(sec, html)
-    if (n["cover"] or n["divider"]) and "cmDriftN1" not in html:
-        block = cover_motion_block()
-        out = out.replace("</head>", block + "\n</head>", 1) if "</head>" in out else block + "\n" + out
+    if n["cover"] or n["divider"]:
+        head = []
+        if engine in CANVAS_ENGINES:
+            sid, sblk, jid, jblk = _canvas_blocks(engine)
+            if f'id="{sid}"' not in html:
+                head.append(sblk())
+            if f'id="{jid}"' not in html:
+                head.append(jblk())
+        elif "cmDriftN1" not in html:
+            head.append(cover_motion_block())
+        if head:
+            block = "\n".join(head)
+            out = out.replace("</head>", block + "\n</head>", 1) if "</head>" in out else block + "\n" + out
+    return out, n
+
+
+# ---------------------------------------------------------------- 本文ヘッダーの数字の帯（v3.17.0 試作・2026-11-05）
+# モーションディレクター仕様 rev4・バリアントB（速さ1.0倍・数字126個）。若松さん承認 2026-11-05 12:29。
+# エンジンは表紙と同じ cover_motion/depth/oracle-school-depth.min.js（バイト列そのまま）。オプトイン＝
+# apply_header_motion を呼んだデッキだけ変わる。帯は .hdr を直下に持つ本文ページだけ（表紙・中扉・dark・
+# data-hb="off" の節は対象外）。帯のあるページだけヘッダーの余白を詰める（文字の大きさは不変）。
+HEADER_MOTION_CSS = DEPTH_MOTION_DIR / "header_motion.css"
+HEADER_MOTION_JS = DEPTH_MOTION_DIR / "header_mount.js"
+HEADER_SEED0 = 20261105
+_SKIP_HB = ("cover-full", "dark", "divider", "pd-divider", "ci-hb-on")
+
+
+def header_motion_block() -> str:
+    for f in (HEADER_MOTION_CSS, HEADER_MOTION_JS):
+        if not f.is_file():
+            raise FileNotFoundError(f"{f.name} が kit に見つかりません: {f}（kit コピーが不完全）")
+    return (f'<style id="ci-header-motion">\n/* ==== cover_motion/depth/header_motion.css（正典 5co-CI-kit・編集禁止） ==== */\n'
+            f'{HEADER_MOTION_CSS.read_text(encoding="utf-8")}\n</style>\n'
+            f'<script id="ci-header-motion-js">\n/* ==== cover_motion/depth/header_mount.js（正典 5co-CI-kit・編集禁止） ==== */\n'
+            f'{HEADER_MOTION_JS.read_text(encoding="utf-8")}\n</script>')
+
+
+def apply_header_motion(html: str):
+    """本文ページ（直下に .hdr を持つ section.slide）に数字の帯を足す。返り値 (html, 足したページ数)。冪等。"""
+    parts = re.split(r'(<section\b[^>]*>)', html)
+    n = 0
+    for i in range(1, len(parts), 2):
+        m = _SECTION_OPEN.match(parts[i])
+        if not m:
+            continue
+        cls = m.group(2).split()
+        if "slide" not in cls or any(c in cls for c in _SKIP_HB) or 'data-hb="off"' in parts[i]:
+            continue
+        body = parts[i + 1] if i + 1 < len(parts) else ""
+        if '<div class="hdr"' not in body.split("</section>")[0]:
+            continue
+        n += 1
+        seed = HEADER_SEED0 + n - 1
+        parts[i] = (f'<section{m.group(1)}class="{" ".join(cls + ["ci-hb-on"])}"{m.group(3)}>'
+                    f'<div class="ci-hb" aria-hidden="true"><canvas class="ci-hb-canvas" data-hb-seed="{seed}"></canvas></div>')
+    out = "".join(parts)
+    if n:
+        head = []
+        if 'id="ci-cover-motion-depth-js"' not in out:
+            head.append(depth_script_block())
+        if 'id="ci-header-motion"' not in out:
+            head.append(header_motion_block())
+        if head:
+            block = "\n".join(head)
+            out = out.replace("</head>", block + "\n</head>", 1) if "</head>" in out else block + "\n" + out
     return out, n
 
 
 def style_block(lang: str = "ja", scale: float = None, interactive: bool = False,
-                mobile_fit: bool = True, cover_motion: bool = True) -> str:
+                mobile_fit: bool = True, cover_motion: bool = True,
+                shelpha: bool = True, internal: bool = None,
+                cover_motion_engine: str = COVER_MOTION_ENGINE) -> str:
     """HEADに挿入する <style> ブロック。先頭の版スタンプが ci_head 経由の証跡になる。
 
     lang を指定すると多言語CSS（VERSION の lang: 行）を末尾に連結する。
     interactive=True のときだけ、動く資料の <style>＋<script> を後ろに足す（v3.9）。
     末尾にフッター版スタック（CI / Shelpha / Template）を常に注入する（2026-10-06・§5.5）。
+    shelpha=False のときだけ Shelpha 版を落とす（伏せると決めた案件だけ・既定は入れる・2026-11-03）。
     mobile_fit=True（既定・v3.12.6）でスマホ幅の縮小、cover_motion=True（既定・v3.12.6）で
     表紙モーションの CSS を後ろに足す（cm-field と数字断片は apply_cover_motion で足す）。
+    cover_motion_engine は "depth"（既定・2026-11-05）か "boid"（v3.15.0）か "euclid"。canvas 版でも従来の
+    cover_motion.css は外さない（旧デッキの .cm 断片がそのまま動くように）。
     """
     tag = version_tag()
     files = " + ".join(css_files())
@@ -395,10 +565,13 @@ def style_block(lang: str = "ja", scale: float = None, interactive: bool = False
         f"/* 5co-CI ci_head {tag} — {files}\n"
         f"   正典連結（5co-CI-kit/ci_head.py 生成・手編集禁止・CSSコピー/inline再実装禁止） */"
     )
-    body = head_css() + (f"\n\n{extra}" if extra else "") + "\n\n" + footer_stack_css()
+    body = head_css() + (f"\n\n{extra}" if extra else "") + "\n\n" + footer_stack_css(shelpha, internal)
     out = f"<style>\n{stamp}\n{body}\n</style>"
     if cover_motion:
         out += "\n" + cover_motion_block()
+        eng = _check_engine(cover_motion_engine)
+        if eng in CANVAS_ENGINES:
+            out += "\n" + _canvas_blocks(eng)[1]()
     if mobile_fit:
         out += "\n" + mobile_fit_block()
     return out + ("\n" + interactive_block() if interactive else "")
@@ -441,19 +614,32 @@ def main(argv):
         lang = _opt(argv, "--lang", str, "ja")
         scale = _opt(argv, "--lang-scale", float, None)
         inter = "--interactive" in argv
+        # 既定で版スタックに Shelpha 版を出す（2026-11-03 若松さん決定）。伏せる案件だけ --no-shelpha。
+        # --internal は v3.14.1 の名残の別名＝受け付けるが既定と同じ（何も変えない）
+        shelpha = "--no-shelpha" not in argv
         mfit = "--no-mobile-fit" not in argv
         cmot = "--no-cover-motion" not in argv
+        engine = _check_engine(_opt(argv, "--cover-motion-engine", str, COVER_MOTION_ENGINE))
         if "--apply-cover-motion" in argv:
             src = _opt(argv, "--apply-cover-motion")
             if not src or not Path(src).is_file():
                 raise FileNotFoundError(f"--apply-cover-motion のデッキが見つかりません: {src}")
             dst = _opt(argv, "-o", str, src)
             html, n = apply_cover_motion(Path(src).read_text(encoding="utf-8"),
-                                         dividers="--no-dividers" not in argv)
+                                         dividers="--no-dividers" not in argv,
+                                         engine=engine)
             if n["cover"] == 0 and "cm-field" not in html:
                 raise ValueError("表紙（section.cover-full）が見つかりません")
             Path(dst).write_text(html, encoding="utf-8")
-            print(f"cover_motion: cover={n['cover']} divider={n['divider']} -> {dst}", file=sys.stderr)
+            print(f"cover_motion[{engine}]: cover={n['cover']} divider={n['divider']} -> {dst}", file=sys.stderr)
+        elif "--apply-header-motion" in argv:
+            src = _opt(argv, "--apply-header-motion")
+            if not src or not Path(src).is_file():
+                raise FileNotFoundError(f"--apply-header-motion のデッキが見つかりません: {src}")
+            dst = _opt(argv, "-o", str, src)
+            html, n = apply_header_motion(Path(src).read_text(encoding="utf-8"))
+            Path(dst).write_text(html, encoding="utf-8")
+            print(f"header_motion[depth/B]: pages={n} -> {dst}", file=sys.stderr)
         elif "--version" in argv:
             print(version_tag())
         elif "--files" in argv:
@@ -463,12 +649,13 @@ def main(argv):
         elif "--cover-ci" in argv:
             print(cover_ci_block())
         elif "--footer-stack" in argv:
-            print(footer_stack_label())
+            print(footer_stack_label(shelpha))
         elif "--css" in argv:
             extra = lang_css(lang, scale)
-            print(head_css() + (f"\n\n{extra}" if extra else "") + "\n\n" + footer_stack_css())
+            print(head_css() + (f"\n\n{extra}" if extra else "") + "\n\n" + footer_stack_css(shelpha))
         else:
-            print(style_block(lang, scale, inter, mobile_fit=mfit, cover_motion=cmot))
+            print(style_block(lang, scale, inter, mobile_fit=mfit, cover_motion=cmot, shelpha=shelpha,
+                              cover_motion_engine=engine))
         return 0
     except (FileNotFoundError, ValueError) as e:
         print(f"NG: {e}", file=sys.stderr)

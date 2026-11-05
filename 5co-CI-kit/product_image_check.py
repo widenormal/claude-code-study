@@ -6,6 +6,7 @@ product_image_check.py — 商品名・ASIN が出るスライドに商品画像
   特定の商品名・ASIN／商品コードを示すページでは、代表商品の商品写真を
   data:image 埋め込みで置く。無いときは data-product-img-exempt="理由"。
   ロゴ（.cl-logo 等）やダイジェスト写真（dg-photo / figs/digest）だけでは足りない。
+  検索順位の根拠ページ（data-serp-page / data-serp-shot）は対象外（serp/serp_check.py が見る）。
   外部 URL の画像は不可（ci_figs lint と同趣旨）。
 
 検出:
@@ -45,7 +46,13 @@ RE_SECTION = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 RE_IMG_TAG = re.compile(r"<img\b([^>]*)/?>", re.IGNORECASE)
-RE_EXEMPT = re.compile(r"\bdata-product-img-exempt\s*=", re.IGNORECASE)
+RE_EXEMPT = re.compile(
+    r"\bdata-product-img-exempt\s*=|\bdata-serp-page\b|\bdata-serp-shot\b",
+    re.IGNORECASE,
+)
+# data-serp-page / data-serp-shot = Amazon検索順位の根拠ページ（FIGURES_GUIDE 2-4）。
+# 帯に写るのは Amazon のサムネイルで他社商品も混ざるため、SKU の代表画像には数えない
+# （dg-photo と同じ扱い）。検品は serp/serp_check.py が SERP_SHOT? で別に行う。
 RE_SLIDE_ID = re.compile(r'\bid\s*=\s*["\']([^"\']+)["\']', re.IGNORECASE)
 RE_ATTR = re.compile(
     r"""(?:^|\s)(src|alt|class)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""",

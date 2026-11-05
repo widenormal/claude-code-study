@@ -61,7 +61,7 @@ PROBE = r"""<script>
 window.addEventListener('load', () => setTimeout(() => {
   const NEAR=__NEAR__, out=[], warn=[];
   const FIXED_SEL='.cf-corner, svg.corner, .corner, .cf-logo, .ci-stack, .period, .ci-digest-btn';
-  const BG_SEL='.cm, .numfield-full, .cm-field > .cm';
+  const BG_SEL='.cm, .numfield-full, .cm-field > .cm, .ci-hb';  // .ci-hb = 本文ヘッダーの数字の帯（aria-hidden の背景・v3.17.0）
   const PROPS=['position','left','top','fontFamily','fontSize','fontWeight','fontStyle','letterSpacing',
     'lineHeight','whiteSpace','textTransform','fontFeatureSettings','paddingLeft','paddingRight','paddingTop','paddingBottom'];
   const lab=el=>{

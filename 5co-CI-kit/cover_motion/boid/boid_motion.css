@@ -1,0 +1,31 @@
+/* boid_cover_v1 (2026-11-04 試作・若松さん指示)。表紙・中扉の数字背景を Boid（OracleSchool）の canvas にする層。
+   Euclidean（../cover_motion.css・layer8_spin_spread_v3）は撤去せず併存。どちらも .cm-field にしか効かない。
+   色・レイアウト・重なり順は Euclidean と同一（地と数字は OracleSchool 側の mode で決まる＝CI3色のみ）。 */
+
+.cover-full.cm-field { background: var(--crystal, #C3D7EE) !important; }
+/* Divider inverted: white bg + crystal-blue digits (cover stays crystal + white digits) */
+.cover-full.pd-divider.cm-field { background: var(--white, #FFFFFF) !important; }
+.cover-full.cm-field > .numfield-full { display: none !important; }
+.cover-full.cm-field > .cf-corner,
+.cover-full.cm-field > .cf-block,
+.cover-full.cm-field > .cover-ci { z-index: 2; }
+
+.cm {
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none; overflow: hidden;
+}
+.cm-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+}
+
+/* 凍結は JS 側（html.ci-static は t=6.0s で停止・prefers-reduced-motion と print は OracleSchool.mount が処理）。
+   canvas なので CSS では止まらない。描画が出る前の素地を CI 色にしておく。 */
+html.ci-static .cm-canvas { opacity: 1 !important; transition: none !important; }
+@media print {
+  .cm-canvas { transition: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cm-canvas { transition: none !important; }
+}

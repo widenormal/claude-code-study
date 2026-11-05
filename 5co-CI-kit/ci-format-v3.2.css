@@ -37,7 +37,7 @@ body{background:var(--crystal-25);}
 .slide.center{display:flex; flex-direction:column; justify-content:center;}
 
 /* footer（全スライド共通・§5.5）
-   左＝版スタック（CI / Shelpha / Template）＋コピーライト、右＝CONFIDENTIAL・頁。
+   左＝版スタック＋コピーライト、右＝CONFIDENTIAL・頁。
    版の実値は ci_head.py が style_block 末尾で上書き注入する（ここはフォールバック＝copyrightのみ）。 */
 .slide::before{content:"© 2026 5co. All rights reserved."; position:absolute; left:36px; bottom:15px;
   font-family:var(--serif-en); font-size:11px; letter-spacing:.04em; color:var(--ink-60);}
@@ -259,7 +259,7 @@ svg.corner{width:102px; top:15mm; right:50px; height:auto;}
    上辺揃え＋nm固定高(34px)＋box固定高(26px)で目標/実績ボックスは常に整列。可変なのはカード下端のみ */
 .okr .sgrp-row::before{content:""; position:absolute; top:0; left:81px; right:81px; border-top:1px solid var(--ln);}
 .okr li.emg{padding-top:19px;}
-/* カテゴリ名下の推計シェア（参考・IGNITE昨年同月×YoY分母） */
+/* カテゴリ名下の参考シェア（昨年同月比の分母） */
 .okr .nd .shr{display:block; font-size:8.5px; font-weight:600; color:var(--ink-85); margin-top:1px; line-height:1.2; white-space:nowrap; text-align:center;}
 /* 5担当ブランドのブロックを大きく見せる（中核アグリゲート強調） */
 .okr .nd.big{min-width:246px;}

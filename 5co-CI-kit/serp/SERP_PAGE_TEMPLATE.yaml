@@ -1,0 +1,38 @@
+# serp_page.yaml — Amazon検索順位の根拠ページ（SERP）の組み立て指定・雛形
+# 使い方: python3 5co-CI-kit/serp/serp_page.py <このファイル>
+# 正＝5co-CI-kit/FIGURES_GUIDE.md §2-4。数値は results.json（と前回比）だけから出る。
+
+page_id: p01
+out: "{{書き出す HTML のパス（この yaml からの相対）}}"
+doc_title: "{{ブラウザのタイトル}}"
+
+# 取得の原本（serp_shot.py の出力）。配布する写しは serp_redact.py を通したものを置く
+results: "src/results.json"
+prev_results: "src/prev_results.json"   # 任意。入れると「前回比」を出す（条件が違えば止まる）
+shots_dir: "{{フルページ PNG のあるフォルダ（社内の原本・コミットしない）}}"
+figs_dir: "figs/serp"      # 帯の画像の書き出し先
+scale: 0.5                 # 帯の縮小率（1.0 で原寸・デッキを軽くするなら 0.5）
+band_height: 400           # 段の高さ（商品画像＋商品名が入る範囲）
+max_rows: 2                # 1キーワードあたりの段の本数
+search_bar: true           # 検索窓の帯を載せる（届け先の表示は切り落とす）
+
+# ヘッダーはロゴだけ（ブランド｜モール）。キッカー文字は置かない
+brand_logo: "figs/brand_logo.png"
+mall_logo: "figs/amazon_logo.svg"
+brand_name: "{{ブランド名}}"
+mall_name: "Amazon"
+
+area: "東京都港区"          # 届け先は区まで（郵便番号はページに出さない）
+rank_label: "順位"          # 行ラベルの2行目（キーワード／順位／判定）
+
+terms: ["{{キーワード1}}", "{{キーワード2}}", "{{キーワード3}}"]   # 並べる順。省略すると results.json の順
+
+title: "Amazon検索の順位｜「{{語}}」で{{n}}位に{{ブランド}}が入っている"   # 「入った」とは書かない
+gist:
+  - "{{上位に入っているキーワードと順位（results.json の数値だけ）}}"
+  - "{{次のギャップのキーワードと順位。施策は measures に書く}}"
+judge: "{{根拠パネルの1行（どの語が上位で、どの語が外か）}}"
+
+# 上位 N 位の外のキーワードに対の施策。書かなければ「施策（案）要確認」が入る
+measures:
+  "{{キーワード3}}": "{{施策（案）}}"

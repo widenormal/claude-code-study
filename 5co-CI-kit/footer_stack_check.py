@@ -5,6 +5,9 @@ footer_stack_check.py — CIスライドHTMLのフッター版スタック検品
 規定（SLIDE_DESIGN_GUIDELINES §5.5 / V3.2_FORMAT）:
   コピーライトの左側に CIキット版・Shelpha版・Template版を出す。
   ci_head.py 経由で組んだデッキは style 内に footer stack 注入が必須。
+  Shelpha 版ラベルは顧客向けデッキも含めて出す（若松さん決定 2026-11-03・v3.14.2＝
+  11-02 に外した v3.14.1 を戻した）。伏せると決めた案件だけ ci_head --no-shelpha で外し、
+  ci-gates.sh --ban-shelpha と対で使う。他の仕入れ先名の混入検査は vocab_check.py（HTML全文）。
 
 使い方:
   python3 footer_stack_check.py <deck.html> [<deck.html> …]
@@ -43,7 +46,12 @@ def selftest() -> int:
     ok = True
     label = ci_head.footer_stack_label()
     assert label.startswith("CI "), label
-    assert "Shelpha" in label and "Template" in label, label
+    assert "Template" in label, label
+    assert "Shelpha" in label, f"版スタックに Shelpha 版を出す（若松さん決定 2026-11-03）: {label}"
+    assert "Shelpha" not in ci_head.footer_stack_label(shelpha=False), "--no-shelpha で外せる"
+    assert "Shelpha" in ci_head.footer_stack_label(internal=True), "--internal は既定と同じ（名残の別名）"
+    assert "Shelpha" in ci_head.footer_stack_css(), ci_head.footer_stack_css()
+    assert "Shelpha" not in ci_head.footer_stack_css(shelpha=False), ci_head.footer_stack_css(shelpha=False)
     css = ci_head.footer_stack_css()
     assert "footer stack" in css and "All rights reserved" in css
     # synthetic HTML
