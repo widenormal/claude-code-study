@@ -1,0 +1,199 @@
+{
+ "_note": "人物素材の台帳。審査済みの既存素材だけを status=approved にする。kit には素材を入れず、パスで参照する（FIGURES_GUIDE §2-2）。新しく生成しない（生成は金曜午前 JST のみ）。external_ok=true は顧客向け・社外版でも使える（権利・公開の確認済み）。false は社内版だけ。 file は台帳のフォルダ基準の相対パス（既定 ws_photo/photos/。素材そのものは kit に入れず、審査済みの置き場から各環境で置く）。ファイルが無い素材は使わない。",
+ "categories": {
+  "nail": {
+   "label": "ネイル",
+   "kw": "ネイル|マニキュア|ネイルカラー|ネイルラッカー|ジェルネイル|ベースコート|トップコート|NailEnvy|NailLacquer|Nail ?Lacquer|InfiniteShine|RapiDry|NatureStrong",
+   "audience": "female"
+  },
+  "skincare": {
+   "label": "スキンケア",
+   "kw": "スキンケア|化粧水|美容液|乳液|洗顔|保湿|クレンジング",
+   "audience": "female"
+  },
+  "haircare": {
+   "label": "ヘアケア",
+   "kw": "シャンプー|コンディショナー|トリートメント|ヘアケア|ヘアオイル",
+   "audience": ""
+  },
+  "bodycare": {
+   "label": "ボディケア",
+   "kw": "ボディソープ|ハンドソープ|ボディケア|ボディローション",
+   "audience": ""
+  },
+  "detergent": {
+   "label": "洗剤・日用品",
+   "kw": "洗剤|柔軟剤|詰め替え|ウェットシート|除菌シート",
+   "audience": ""
+  },
+  "petfood": {
+   "label": "ペットフード",
+   "kw": "ドッグフード|キャットフード|ペットフード",
+   "audience": ""
+  }
+ },
+ "assets": [
+  {
+   "id": "consumer_01_headroom",
+   "persona": "consumer",
+   "gender": "female",
+   "age": "30-39",
+   "categories": [
+    "*"
+   ],
+   "scene": "スマホを見る女性（普段着・自宅）",
+   "file": "photos/consumer_01_headroom_female_cut.webp",
+   "caption": "Amazonユーザー",
+   "alt": "Amazonユーザー（架空の人物・背景なし切り抜き）",
+   "source": "/workspace/knowledge/design/photo_director/site_regen_2026-10-31/consumer_01_headroom/final_consumer_01_headroom_cutout_1200x1467.png",
+   "review": {
+    "photo": "PASS（consumer_01_headroom/README.md）",
+    "costume": "合格（costume_director/2026-10-31_site-regen-review.md：consumer_01 と同じ人物・同じ服）"
+   },
+   "status": "approved",
+   "note": "cutout_halo_check：w813 で 7px の HALO?（左手の指の縁・#C3D7EE 上では見えない・警告）",
+   "external_ok": true,
+   "external_basis": "2026-11-11 追加指示（CIスライド経由）「consumer_01_headroom と facing_marketer_03_v5 も紫苑ミラと同じく顧客向けOK」"
+  },
+  {
+   "id": "consumer_03_dup5",
+   "persona": "consumer",
+   "gender": "female",
+   "age": "50-59",
+   "categories": [
+    "skincare",
+    "bodycare",
+    "haircare"
+   ],
+   "scene": "無地のボトルを持つ女性の横顔（自宅・窓辺）",
+   "file": "photos/consumer_03_dup5_female_cut.webp",
+   "caption": "Amazonユーザー",
+   "alt": "Amazonユーザー（架空の人物・背景なし切り抜き）",
+   "source": "/workspace/knowledge/design/photo_director/site_regen_dup5_2026-10-31/consumer_03/final_consumer_03_cutout_1214x1536.png",
+   "review": {
+    "photo": "PASS（site_regen_dup5_2026-10-31/review.md）",
+    "costume": "合格（costume_director/2026-10-31_dup5-review.md）"
+   },
+   "status": "approved",
+   "external_ok": false,
+   "external_basis": "未確認（顧客向けの権利の記録なし）"
+  },
+  {
+   "id": "consumer_02_amazonbox_v2",
+   "persona": "consumer",
+   "gender": "male",
+   "age": "50-59",
+   "categories": [
+    "*"
+   ],
+   "scene": "Amazonの箱を開ける男性",
+   "file": "photos/consumer_02_amazonbox_v2_cut.webp",
+   "caption": "Amazonユーザー",
+   "alt": "Amazonユーザー（架空の人物・背景なし切り抜き）",
+   "source": "/workspace/knowledge/design/photo_director/consumer_02_amazonbox_2026-11-05/consumer_02_amazonbox_v2_1200x1615.png",
+   "review": {
+    "photo": "v2 総合PASS（consumer_02_amazonbox_2026-11-05/review.md）",
+    "costume": "元の consumer_02 は合格（2026-10-31_dup5-review.md）"
+   },
+   "status": "approved",
+   "external_ok": false,
+   "external_basis": "未確認（顧客向けの権利の記録なし）"
+  },
+  {
+   "id": "inf02_mira_opi_v2",
+   "persona": "influencer",
+   "gender": "female",
+   "age": "20-39",
+   "categories": [
+    "nail"
+   ],
+   "scene": "紫のマニキュアのボトルを持ち、紫の爪で指す",
+   "file": "photos/influencer_mira_opi_v2_cut.webp",
+   "caption": "ネイルのインフルエンサー",
+   "alt": "ネイルのインフルエンサー（架空の人物・背景なし切り抜き）",
+   "source": "/workspace/knowledge/design/photo_director/influencers_inf_v2_2026-11-07/program_2026-11-07/INF-02_shion_mira_opi_v2/person_layer.png",
+   "review": {
+    "photo": "合格（同フォルダ review.md）",
+    "costume": "PASS（costume_director/reviews/2026-11-07_inf-v2_mira-purple-nail_v2_review.md）"
+   },
+   "status": "approved",
+   "external_ok": true,
+   "external_basis": "若松さん 2026-11-11「紫苑ミラは顧客むけでも問題ありません」（t661u）"
+  },
+  {
+   "id": "inf01_homura_rio",
+   "persona": "influencer",
+   "gender": "",
+   "age": "",
+   "categories": [
+    "bodycare"
+   ],
+   "scene": "ミニハンドソープの泡にのけぞり笑う",
+   "status": "candidate",
+   "note": "原記録の審査が揃っていない（2026-11-09 handoff §1）",
+   "external_ok": false
+  },
+  {
+   "id": "inf03_baku_daigo",
+   "persona": "influencer",
+   "gender": "male",
+   "age": "",
+   "categories": [
+    "detergent"
+   ],
+   "scene": "洗剤ボトルを掲げて叫ぶ",
+   "status": "candidate",
+   "note": "衣装の原記録 FAIL（卓上マイク）のまま",
+   "external_ok": false
+  },
+  {
+   "id": "inf04_sabi_ken",
+   "persona": "influencer",
+   "gender": "male",
+   "age": "",
+   "categories": [
+    "detergent"
+   ],
+   "scene": "ウェットシートを比べる",
+   "status": "candidate",
+   "note": "原記録の審査が揃っていない",
+   "external_ok": false
+  },
+  {
+   "id": "inf05_tsukuyomi_sei",
+   "persona": "influencer",
+   "gender": "",
+   "age": "",
+   "categories": [
+    "detergent",
+    "bodycare"
+   ],
+   "scene": "詰め替えを注ぐ",
+   "status": "candidate",
+   "note": "衣装の原記録 FAIL（前パネル）のまま",
+   "external_ok": false
+  },
+  {
+   "id": "facing_marketer_03_v5",
+   "persona": "consultant",
+   "gender": "female",
+   "age": "",
+   "categories": [
+    "*"
+   ],
+   "scene": "キャメルのジャケット・フォリオに記入",
+   "file": "photos/consultant_facing_marketer_03_v5_cut.webp",
+   "caption": "コンサルタント",
+   "alt": "コンサルタント（架空の人物・背景なし切り抜き）",
+   "source": "5co-CI-kit v3.20.1 digest_person/photo/cutouts/facing_marketer_03_v5.png",
+   "review": {
+    "photo": "合格（photo_director/2026-10-30_photo-review-v1.md）",
+    "costume": "合格（costume_director/2026-10-30_marketer-final-pass.md）・若松さん本番採用 2026-10-30"
+   },
+   "status": "approved",
+   "note": "コンサルタントとして使う（若松さん 2026-11-11 決定）。kit 上の名前は marketer",
+   "external_ok": true,
+   "external_basis": "2026-11-11 追加指示（CIスライド経由）「consumer_01_headroom と facing_marketer_03_v5 も紫苑ミラと同じく顧客向けOK」"
+  }
+ ]
+}

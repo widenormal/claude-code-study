@@ -1,0 +1,963 @@
+{
+  "schema": "ci-framework-catalog/1",
+  "version": "2026.11.11",
+  "source": "SLIDE-PATTERN 129種（修正依頼欄と同じID）",
+  "figure_categories": [
+    "フレームワーク・分析",
+    "グラフ・データ",
+    "図解・ダイアグラム",
+    "フロー・ステップ",
+    "テーブル・比較",
+    "KPI・まとめ",
+    "カード・グリッド"
+  ],
+  "recommend": {
+    "table": [
+      "heatmap-matrix-table",
+      "comparison-table-with-highlight",
+      "stacked-bar-100pct",
+      "waterfall-bridge-chart",
+      "butterfly-comparison-chart",
+      "slope-chart-before-after"
+    ],
+    "chart": [
+      "waterfall-bridge-chart",
+      "stacked-bar-100pct",
+      "slope-chart-before-after",
+      "chart-with-callout",
+      "kpi-bar-chart",
+      "tornado-sensitivity-chart"
+    ],
+    "kpi": [
+      "okr-objective-kr",
+      "three-kpi-big-number",
+      "goal-kgi-kpi-dashboard",
+      "kpi-driver-tree",
+      "waterfall-bridge-chart",
+      "donut-left-kpi-bar-right"
+    ],
+    "diagram": [
+      "issue-logic-tree",
+      "kpi-driver-tree",
+      "swimlane-process-flow",
+      "positioning-matrix-2x2",
+      "mekko-market-map"
+    ]
+  },
+  "patterns": [
+    {
+      "id": "cover-title-center",
+      "label": "カバータイトルセンター",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "cover-with-image-left",
+      "label": "カバーウィズイメージレフト",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "cover-gradient-text-bottom",
+      "label": "カバーグラデーションテキストボトム",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "cover-logo-mark-centered",
+      "label": "カバーロゴマークセンタード",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "cover-fullbg-text-left",
+      "label": "カバーフルバックグラウンドテキストレフト",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "cover-minimal-disclaimer",
+      "label": "カバーミニマルディスクレーマー",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "section-divider",
+      "label": "セクションディバイダー",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "closing-slide",
+      "label": "クロージングスライド",
+      "category": "表紙・セクション",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "agenda-toc",
+      "label": "アジェンダTOC",
+      "category": "目次",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "numbered-toc",
+      "label": "ナンバードTOC",
+      "category": "目次",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "two-column-toc",
+      "label": "ツーカラムTOC",
+      "category": "目次",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "sidebar-toc-panel",
+      "label": "サイドバーTOCパネル",
+      "category": "目次",
+      "family": "bars",
+      "figure": false
+    },
+    {
+      "id": "category-toc-simple",
+      "label": "カテゴリーTOCシンプル",
+      "category": "目次",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "category-toc-with-image",
+      "label": "カテゴリーTOCウィズイメージ",
+      "category": "目次",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "key-message-single",
+      "label": "キーメッセージシングル",
+      "category": "コンテンツ（本文）",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "two-col-text-body",
+      "label": "ツーカラムテキストボディ",
+      "category": "コンテンツ（本文）",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "two-section-stacked-text",
+      "label": "ツーセクションスタックドテキスト",
+      "category": "コンテンツ（本文）",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "image-left-text-right",
+      "label": "イメージレフトテキストライト",
+      "category": "コンテンツ（本文）",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "quote-large-center",
+      "label": "クォートラージセンター",
+      "category": "コンテンツ（本文）",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "numbered-list-with-body",
+      "label": "ナンバードリストウィズボディ",
+      "category": "テキストリスト",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "numbered-list-hexagon-badge",
+      "label": "ナンバードリストヘキサゴンバッジ",
+      "category": "テキストリスト",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "numbered-two-col-row",
+      "label": "ナンバードツーカラムロウ",
+      "category": "テキストリスト",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "numbered-two-col-row-with-accent",
+      "label": "ナンバードツーカラムロウウィズアクセント",
+      "category": "テキストリスト",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "numbered-row-full-width",
+      "label": "ナンバードロウフルワイド",
+      "category": "テキストリスト",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "icon-left-text-list",
+      "label": "アイコンレフトテキストリスト",
+      "category": "テキストリスト",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "icon-left-text-list-detailed",
+      "label": "アイコンレフトテキストリストディテイルド",
+      "category": "テキストリスト",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "three-tier-segment-list",
+      "label": "スリーティアセグメントリスト",
+      "category": "テキストリスト",
+      "family": "cards",
+      "figure": false
+    },
+    {
+      "id": "four-step-flow",
+      "label": "フォーステップフロー",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "four-step-flow-with-callout",
+      "label": "フォーステップフローウィズコールアウト",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "four-step-card-flow",
+      "label": "フォーステップカードフロー",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "two-feature-with-result",
+      "label": "ツーフィーチャーウィズリザルト",
+      "category": "フロー・ステップ",
+      "family": "text",
+      "figure": true
+    },
+    {
+      "id": "horizontal-timeline-cards",
+      "label": "ホリゾンタルタイムラインカード",
+      "category": "フロー・ステップ",
+      "family": "timeline",
+      "figure": true
+    },
+    {
+      "id": "milestone-timeline",
+      "label": "マイルストーンタイムライン",
+      "category": "フロー・ステップ",
+      "family": "timeline",
+      "figure": true
+    },
+    {
+      "id": "three-stage-circle-flow",
+      "label": "スリーステージサークルフロー",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "circle-node-step-flow",
+      "label": "サークルノードステップフロー",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "vertical-step-flow",
+      "label": "バーチカルステップフロー",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "vertical-step-flow-with-sidebar",
+      "label": "バーチカルステップフローウィズサイドバー",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "vertical-step-three-col",
+      "label": "バーチカルステップスリーカラム",
+      "category": "フロー・ステップ",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "vertical-timeline-label-list",
+      "label": "バーチカルタイムラインラベルリスト",
+      "category": "フロー・ステップ",
+      "family": "timeline",
+      "figure": true
+    },
+    {
+      "id": "staircase-roadmap",
+      "label": "ステアケースロードマップ",
+      "category": "フロー・ステップ",
+      "family": "pyramid",
+      "figure": true
+    },
+    {
+      "id": "staircase-roadmap-layered",
+      "label": "ステアケースロードマップレイヤード",
+      "category": "フロー・ステップ",
+      "family": "pyramid",
+      "figure": true
+    },
+    {
+      "id": "staircase-roadmap-with-icons",
+      "label": "ステアケースロードマップウィズアイコン",
+      "category": "フロー・ステップ",
+      "family": "pyramid",
+      "figure": true
+    },
+    {
+      "id": "node-edge-graph",
+      "label": "ノードエッジグラフ",
+      "category": "フロー・ステップ",
+      "family": "hub",
+      "figure": true
+    },
+    {
+      "id": "cycle-diagram-with-labels",
+      "label": "サイクルダイアグラムウィズラベル",
+      "category": "図解・ダイアグラム",
+      "family": "cycle",
+      "figure": true
+    },
+    {
+      "id": "pdca-cycle-diagram",
+      "label": "PDCAサイクルダイアグラム",
+      "category": "図解・ダイアグラム",
+      "family": "cycle",
+      "figure": true
+    },
+    {
+      "id": "two-circle-bilateral-flow",
+      "label": "ツーサークルバイラテラルフロー",
+      "category": "図解・ダイアグラム",
+      "family": "hub",
+      "figure": true
+    },
+    {
+      "id": "hub-spoke-diagram",
+      "label": "ハブスポークダイアグラム",
+      "category": "図解・ダイアグラム",
+      "family": "hub",
+      "figure": true
+    },
+    {
+      "id": "center-illustration-spoke",
+      "label": "センターイラストレーションスポーク",
+      "category": "図解・ダイアグラム",
+      "family": "hub",
+      "figure": true
+    },
+    {
+      "id": "circle-hub-list-right",
+      "label": "サークルハブリストライト",
+      "category": "図解・ダイアグラム",
+      "family": "hub",
+      "figure": true
+    },
+    {
+      "id": "polygon-hub-spoke",
+      "label": "ポリゴンハブスポーク",
+      "category": "図解・ダイアグラム",
+      "family": "hub",
+      "figure": true
+    },
+    {
+      "id": "four-quadrant-center-circle",
+      "label": "フォークアドラントセンターサークル",
+      "category": "図解・ダイアグラム",
+      "family": "matrix",
+      "figure": true
+    },
+    {
+      "id": "donut-chart-spoke-labels",
+      "label": "ドーナツチャートスポークラベル",
+      "category": "図解・ダイアグラム",
+      "family": "hub",
+      "figure": true
+    },
+    {
+      "id": "org-chart-tree",
+      "label": "オーグチャートツリー",
+      "category": "図解・ダイアグラム",
+      "family": "tree",
+      "figure": true
+    },
+    {
+      "id": "two-column-split-boxes",
+      "label": "ツーカラムスプリットボックス",
+      "category": "図解・ダイアグラム",
+      "family": "text",
+      "figure": true
+    },
+    {
+      "id": "two-col-icon-list-comparison",
+      "label": "ツーカラムアイコンリストコンパリゾン",
+      "category": "図解・ダイアグラム",
+      "family": "table",
+      "figure": true
+    },
+    {
+      "id": "four-card-2x2",
+      "label": "フォーカード2×2",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "six-card-two-column",
+      "label": "シックスカードツーカラム",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "six-card-2x3-grid",
+      "label": "シックスカード2×3グリッド",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "eight-card-2x4-grid",
+      "label": "エイトカード2×4グリッド",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "three-column-icon-card",
+      "label": "スリーカラムアイコンカード",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "three-col-icon-card-header-band",
+      "label": "スリーカラムアイコンカードヘッダーバンド",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "three-col-icon-card-with-cta",
+      "label": "スリーカラムアイコンカードウィズCTA",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "three-col-icon-card-body-text",
+      "label": "スリーカラムアイコンカードボディテキスト",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "three-col-large-icon-card",
+      "label": "スリーカラムラージアイコンカード",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "three-col-numbered-card",
+      "label": "スリーカラムナンバードカード",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "three-card-icon-with-subheading",
+      "label": "スリーカードアイコンウィズサブヘディング",
+      "category": "カード・グリッド",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "feature-metrics-four-cells",
+      "label": "フィーチャーメトリクスフォーセル",
+      "category": "カード・グリッド",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "bar-chart-full",
+      "label": "バーチャートフル",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "kpi-bar-chart",
+      "label": "KPIバーチャート",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "chart-left-text-right",
+      "label": "チャートレフトテキストライト",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "chart-with-callout",
+      "label": "チャートウィズコールアウト",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "pie-chart-left-list-right",
+      "label": "パイチャートレフトリストライト",
+      "category": "グラフ・データ",
+      "family": "donut",
+      "figure": true
+    },
+    {
+      "id": "donut-chart-left-icon-list-right",
+      "label": "ドーナツチャートレフトアイコンリストライト",
+      "category": "グラフ・データ",
+      "family": "donut",
+      "figure": true
+    },
+    {
+      "id": "donut-left-kpi-bar-right",
+      "label": "ドーナツレフトKPIバーライト",
+      "category": "グラフ・データ",
+      "family": "donut",
+      "figure": true
+    },
+    {
+      "id": "headline-three-donut-charts",
+      "label": "ヘッドラインスリードーナツチャート",
+      "category": "グラフ・データ",
+      "family": "donut",
+      "figure": true
+    },
+    {
+      "id": "text-body-left-donut-right",
+      "label": "テキストボディレフトドーナツライト",
+      "category": "グラフ・データ",
+      "family": "donut",
+      "figure": true
+    },
+    {
+      "id": "three-col-kpi-with-chart",
+      "label": "スリーカラムKPIウィズチャート",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "two-col-list-and-chart",
+      "label": "ツーカラムリストアンドチャート",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true,
+      "kit_fn": "bars_line"
+    },
+    {
+      "id": "two-chart-panel",
+      "label": "ツーチャートパネル",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "headline-three-chart-grid",
+      "label": "ヘッドラインスリーチャートグリッド",
+      "category": "グラフ・データ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "comparison-matrix-table",
+      "label": "コンパリゾンマトリックステーブル",
+      "category": "テーブル・比較",
+      "family": "table",
+      "figure": true
+    },
+    {
+      "id": "comparison-table-with-highlight",
+      "label": "コンパリゾンテーブルウィズハイライト",
+      "category": "テーブル・比較",
+      "family": "table",
+      "figure": true
+    },
+    {
+      "id": "pricing-plan-cards",
+      "label": "プライシングプランカード",
+      "category": "テーブル・比較",
+      "family": "table",
+      "figure": true
+    },
+    {
+      "id": "pricing-comparison-table",
+      "label": "プライシングコンパリゾンテーブル",
+      "category": "テーブル・比較",
+      "family": "table",
+      "figure": true
+    },
+    {
+      "id": "status-progress-table",
+      "label": "ステータスプログレステーブル",
+      "category": "テーブル・比較",
+      "family": "table",
+      "figure": true
+    },
+    {
+      "id": "before-after-two-col",
+      "label": "ビフォーアフターツーカラム",
+      "category": "テーブル・比較",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "problem-solution",
+      "label": "プロブレムソリューション",
+      "category": "テーブル・比較",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "risk-matrix-2x2",
+      "label": "リスクマトリックス2×2",
+      "category": "テーブル・比較",
+      "family": "matrix",
+      "figure": true
+    },
+    {
+      "id": "three-kpi-big-number",
+      "label": "スリーKPIビッグナンバー",
+      "category": "KPI・まとめ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "goal-kgi-kpi-dashboard",
+      "label": "ゴールKGI KPIダッシュボード",
+      "category": "KPI・まとめ",
+      "family": "bars",
+      "figure": true
+    },
+    {
+      "id": "summary-three-points",
+      "label": "サマリースリーポイント",
+      "category": "KPI・まとめ",
+      "family": "text",
+      "figure": true
+    },
+    {
+      "id": "action-items-list",
+      "label": "アクションアイテムリスト",
+      "category": "KPI・まとめ",
+      "family": "text",
+      "figure": true
+    },
+    {
+      "id": "faq-grid",
+      "label": "FAQグリッド",
+      "category": "Q&A・FAQ",
+      "family": "cards",
+      "figure": false
+    },
+    {
+      "id": "faq-three-column-grid",
+      "label": "FAQスリーカラムグリッド",
+      "category": "Q&A・FAQ",
+      "family": "cards",
+      "figure": false
+    },
+    {
+      "id": "faq-single-column",
+      "label": "FAQシングルカラム",
+      "category": "Q&A・FAQ",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "faq-stacked-qa-boxes",
+      "label": "FAQスタックドQAボックス",
+      "category": "Q&A・FAQ",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "profile-bio",
+      "label": "プロフィールバイオ",
+      "category": "プロフィール",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "profile-bio-photo-right",
+      "label": "プロフィールバイオフォトライト",
+      "category": "プロフィール",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "team-org-with-photo",
+      "label": "チームオーグウィズフォト",
+      "category": "プロフィール",
+      "family": "text",
+      "figure": false
+    },
+    {
+      "id": "step-detail-photo-aside",
+      "label": "ステップディテールフォトアサイド",
+      "category": "プロフィール",
+      "family": "flow",
+      "figure": false
+    },
+    {
+      "id": "waterfall-bridge-chart",
+      "label": "ウォーターフォールブリッジチャート",
+      "category": "フレームワーク・分析",
+      "family": "waterfall",
+      "figure": true,
+      "kit_fn": "waterfall"
+    },
+    {
+      "id": "stacked-bar-100pct",
+      "label": "スタックドバー100%",
+      "category": "フレームワーク・分析",
+      "family": "stacked",
+      "figure": true
+    },
+    {
+      "id": "mekko-market-map",
+      "label": "メッコマーケットマップ",
+      "category": "フレームワーク・分析",
+      "family": "mekko",
+      "figure": true,
+      "kit_fn": "mekko"
+    },
+    {
+      "id": "tornado-sensitivity-chart",
+      "label": "トルネードセンシティビティチャート",
+      "category": "フレームワーク・分析",
+      "family": "tornado",
+      "figure": true,
+      "kit_fn": "ranges"
+    },
+    {
+      "id": "butterfly-comparison-chart",
+      "label": "バタフライコンパリゾンチャート",
+      "category": "フレームワーク・分析",
+      "family": "butterfly",
+      "figure": true
+    },
+    {
+      "id": "scatter-bubble-positioning",
+      "label": "スキャッターバブルポジショニング",
+      "category": "フレームワーク・分析",
+      "family": "scatter",
+      "figure": true,
+      "kit_fn": "bubble"
+    },
+    {
+      "id": "radar-chart-comparison",
+      "label": "レーダーチャートコンパリゾン",
+      "category": "フレームワーク・分析",
+      "family": "radar",
+      "figure": true
+    },
+    {
+      "id": "slope-chart-before-after",
+      "label": "スロープチャートビフォーアフター",
+      "category": "フレームワーク・分析",
+      "family": "slope",
+      "figure": true,
+      "kit_fn": "slope"
+    },
+    {
+      "id": "heatmap-matrix-table",
+      "label": "ヒートマップマトリックステーブル",
+      "category": "フレームワーク・分析",
+      "family": "heatmap",
+      "figure": true,
+      "kit_fn": "heatmap"
+    },
+    {
+      "id": "funnel-conversion-stages",
+      "label": "ファネルコンバージョンステージ",
+      "category": "フレームワーク・分析",
+      "family": "funnel",
+      "figure": true,
+      "kit_fn": "funnel"
+    },
+    {
+      "id": "issue-logic-tree",
+      "label": "イシューロジックツリー",
+      "category": "フレームワーク・分析",
+      "family": "tree",
+      "figure": true,
+      "kit_fn": "tree"
+    },
+    {
+      "id": "kpi-driver-tree",
+      "label": "KPIドライバーツリー",
+      "category": "フレームワーク・分析",
+      "family": "tree",
+      "figure": true,
+      "kit_fn": "tree"
+    },
+    {
+      "id": "minto-pyramid-structure",
+      "label": "ミントピラミッドストラクチャー",
+      "category": "フレームワーク・分析",
+      "family": "tree",
+      "figure": true
+    },
+    {
+      "id": "decision-tree-options",
+      "label": "ディシジョンツリーオプション",
+      "category": "フレームワーク・分析",
+      "family": "tree",
+      "figure": true
+    },
+    {
+      "id": "fishbone-cause-analysis",
+      "label": "フィッシュボーンコーズアナリシス",
+      "category": "フレームワーク・分析",
+      "family": "fishbone",
+      "figure": true
+    },
+    {
+      "id": "positioning-matrix-2x2",
+      "label": "ポジショニングマトリックス2×2",
+      "category": "フレームワーク・分析",
+      "family": "matrix",
+      "figure": true
+    },
+    {
+      "id": "nine-box-matrix-3x3",
+      "label": "ナインボックスマトリックス3×3",
+      "category": "フレームワーク・分析",
+      "family": "matrix",
+      "figure": true
+    },
+    {
+      "id": "harvey-ball-comparison-table",
+      "label": "ハーベイボールコンパリゾンテーブル",
+      "category": "フレームワーク・分析",
+      "family": "heatmap",
+      "figure": true
+    },
+    {
+      "id": "layered-pyramid-hierarchy",
+      "label": "レイヤードピラミッドヒエラルキー",
+      "category": "フレームワーク・分析",
+      "family": "pyramid",
+      "figure": true
+    },
+    {
+      "id": "concentric-circles-market",
+      "label": "コンセントリックサークルマーケット",
+      "category": "フレームワーク・分析",
+      "family": "concentric",
+      "figure": true,
+      "kit_fn": "concentric"
+    },
+    {
+      "id": "venn-three-circle-overlap",
+      "label": "ベンスリーサークルオーバーラップ",
+      "category": "フレームワーク・分析",
+      "family": "venn",
+      "figure": true
+    },
+    {
+      "id": "value-chain-porter",
+      "label": "バリューチェーンポーター",
+      "category": "フレームワーク・分析",
+      "family": "flow",
+      "figure": true
+    },
+    {
+      "id": "strategy-house-framework",
+      "label": "ストラテジーハウスフレームワーク",
+      "category": "フレームワーク・分析",
+      "family": "pyramid",
+      "figure": true
+    },
+    {
+      "id": "three-horizons-growth",
+      "label": "スリーホライズングロース",
+      "category": "フレームワーク・分析",
+      "family": "pyramid",
+      "figure": true
+    },
+    {
+      "id": "business-model-canvas-grid",
+      "label": "ビジネスモデルキャンバスグリッド",
+      "category": "フレームワーク・分析",
+      "family": "cards",
+      "figure": true
+    },
+    {
+      "id": "customer-journey-map",
+      "label": "カスタマージャーニーマップ",
+      "category": "フレームワーク・分析",
+      "family": "timeline",
+      "figure": true
+    },
+    {
+      "id": "swimlane-process-flow",
+      "label": "スイムレーンプロセスフロー",
+      "category": "フレームワーク・分析",
+      "family": "timeline",
+      "figure": true
+    },
+    {
+      "id": "phase-workstream-roadmap",
+      "label": "フェーズワークストリームロードマップ",
+      "category": "フレームワーク・分析",
+      "family": "timeline",
+      "figure": true
+    },
+    {
+      "id": "iceberg-visible-hidden",
+      "label": "アイスバーグビジブルヒドゥン",
+      "category": "フレームワーク・分析",
+      "family": "concentric",
+      "figure": true
+    }
+  ]
+}

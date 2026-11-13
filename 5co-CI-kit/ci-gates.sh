@@ -29,6 +29,12 @@
 #                                    フォルダは縮小判定 --resize 1152,813,406,284,142 込み（CI_HALO_RESIZE で変更・空で無効）
 #                                    さらに背景色の取り残し [D] bgres（--bg-residue）を警告のみで回す（2026-10-30・
 #                                    --strict でも落とさない。CI_HALO_BGRES=0 で省略・縮小幅は CI_HALO_BGRES_RESIZE）
+#   ci-gates.sh --external <deck>  … 社外に出す版の検品（試作 2026-11-11）。図の型ピッカー（framework_picker/）の
+#                                    DOM・CSS・JS・型の一覧・data-fp-*、ローカルパス（file:・/workspace/・共有ドライブ等）、
+#                                    相対パスの参照が1つでも残れば落とす（FP_TRACE）。v3.19.0 から仕入れ元などの名前
+#                                    （Ignite・DMT・大文字小文字を区別しない＝FP_TRACE vendor・契約上の必須）も落とす。
+#                                    Shelpha は対象外（v3.19.2・v3.14.2 の決定どおり版スタックに出す）。
+#                                    付けないときは、ピッカー入りの社内版に FP_INTERNAL?（社外に出さない）を警告で出すだけ
 #   ci-gates.sh --json <deck>      … 各検査の --json 出力を1つの JSON 文書にまとめて stdout へ（v3.12.6）
 #                                    テキスト表示は出さない。終了コードは通常と同じ（0=OK／1=NG／2=引数誤り）
 #                                    スキーマ＝ci_gates_json.py。--json を持たない検査は表示文を "text" に入れる
@@ -41,7 +47,10 @@
 #   5. llm_output_check.py       … LLM出力の破損     （--source を渡したときだけ・落とす）
 #   6. ci_figs.py coverage       … 図の無い本文ページ（FIG?・既定で図を使う＝FIGURES_GUIDE.md 0章／警告）
 #   7. ci_figs.py lint           … 図・イラストの断片（--figs <dir> を渡したときだけ・落とす）
-#   8. footer_stack_check.py     … フッター版スタック（ci_head 経由なら必須・既定は警告）
+#   8. footer_stack_check.py     … フッター版スタック（ci_head 経由なら必須・既定は警告。
+#                                  CI／Template の値が空・「—」の STACK_EMPTY は落とす・v3.18.1）
+#   8b. header_band_check.py     … 本文ヘッダーの数字の帯（HB_MISSING＝版スタンプ v3.17.0 以上で帯の無い本文ページは落とす・
+#                                  data-hb="off" に理由が無い HB_REASON? は警告・v3.18.1）
 #   9. product_image_check.py    … 商品名・ASIN に商品画像（PRODUCT_IMG?・既定は警告・FIGURES_GUIDE 2-1）
 #  10. check_fixed_overlap.py    … 固定要素（コーナーロゴ・フッター・頁番号）× 本文／色面／画像（落とす・v3.12）
 #  10b. check_content_overlap.py … 本文の見える要素どうし（SVG 内の図形・写真・色面）の重なり／COL-OVERFLOW（警告のみ・v3.17.2）
@@ -67,6 +76,9 @@
 #                                  HTML 全文＝<style>・<script>・HTML/CSS/JS のコメント・属性まで見て落とす
 #                                  （v3.14.1・若松さん決定 2026-11-02。社内資料だけ --allow-vendor で外せる）。
 #                                  「Shelpha」は書いてよい（2026-11-03・v3.14.2）＝伏せる案件だけ --ban-shelpha
+#  18. framework_picker/fp_external_check.py
+#                                … 社外版の痕跡（FP_TRACE・--external のときだけ落とす／ピッカー入りの社内版は FP_INTERNAL? 警告・v3.19.0。
+#                                  vendor＝Ignite・DMT（Shelpha は対象外・v3.19.2））
 #  17. serp/serp_check.py        … Amazon検索順位の根拠ページ（SERP_SHOT?・data-serp-page があるページだけ・
 #                                  v3.14.0）。出所は「出所：Amazon.co.jp検索結果（取得日時・条件）」だけ＝
 #                                  事業者名・推計の手口・郵便番号・外部画像は落とす。正＝FIGURES_GUIDE.md 2-4
@@ -80,11 +92,12 @@ HALO_DECK_RESIZE="${CI_HALO_DECK_RESIZE-}"             # デッキ内画像の�
 HALO_BGRES="${CI_HALO_BGRES-1}"                          # --cutouts で bgres も回す（0 で省略・当面は警告のみ）
 HALO_BGRES_RESIZE="${CI_HALO_BGRES_RESIZE-$HALO_RESIZE}" # bgres の縮小判定（既定は CI_HALO_RESIZE と同じ）
 
-V=0; STRICT=0; JSON=0; SERP=0; BAN_SHELPHA=(); SOURCE=""; FIGS=""; CUTOUTS=""; FILES=()
+V=0; STRICT=0; JSON=0; SERP=0; EXTERNAL=0; BAN_SHELPHA=(); SOURCE=""; FIGS=""; CUTOUTS=""; FILES=()
 while [ $# -gt 0 ]; do case "$1" in
   -v|--verbose) V=1;;
   --strict) STRICT=1;;
   --json) JSON=1;;                     # 1つの JSON 文書にまとめて出す（v3.12.6）
+  --external) EXTERNAL=1;;             # 社外に出す版：型ピッカー・ローカルパスの痕跡を落とす（試作 2026-11-11）
   --serp) SERP=1;;                     # 検索順位の根拠ページの検品を必ず走らせる（v3.14.0）
   --ban-shelpha) BAN_SHELPHA=(--ban-shelpha);;  # この案件は「Shelpha」も伏せる（既定は書いてよい・v3.14.2）
   --source) SOURCE="${2:-}"; shift;;   # LLM が書き直した版の原文（llm_output_check.py へ渡す）
@@ -151,7 +164,10 @@ for f in "${FILES[@]}"; do
     else echo "  ✘ LLM出力の検品     原文が見つかりません: $SOURCE"; FAIL=1; fi
   fi
   # フッター版スタック（ci_head 経由デッキは必須・旧デッキは警告のみ）
-  gate "版スタック"     "$SELF_DIR/footer_stack_check.py" "$f" 0 --warn-only
+  # 空の版（「Template —」など・STACK_EMPTY）は --warn-only でも rc=1 で返る＝落とす（v3.18.1）
+  gate "版スタック"     "$SELF_DIR/footer_stack_check.py" "$f" 1 --warn-only
+  # 本文ヘッダーの数字の帯の付け忘れ（HB_MISSING は落とす・v3.18.1）
+  gate "ヘッダーの帯"   "$SELF_DIR/header_band_check.py" "$f" 1
   # 商品名・ASIN の商品画像（FIGURES_GUIDE 2-1・警告のみ）
   gate "商品画像"       "$SELF_DIR/product_image_check.py" "$f" 0 --warn-only
   # 人物写真のキャプション・alt に「イメージ写真」と書かない（COPY_GUIDE ルール11・警告のみ）
@@ -187,6 +203,12 @@ for f in "${FILES[@]}"; do
     gate "表紙モーション(depth)" "$SELF_DIR/cover_motion/depth/depth_motion.py" --lint 0 "$f"
   else
     grep -q 'data-boid-mode' "$f" && gate "表紙モーション(Boid)" "$SELF_DIR/cover_motion/boid/boid_motion.py" --lint 0 "$f"
+  fi
+  # 社外版の痕跡（図の型ピッカー・ローカルパス・相対参照。試作 2026-11-11）
+  if [ $EXTERNAL -eq 1 ]; then
+    gate "社外版の痕跡"  "$SELF_DIR/framework_picker/fp_external_check.py" "$f" 1
+  elif grep -q 'data-ci-fp="internal"' "$f"; then
+    gate "社外版の痕跡"  "$SELF_DIR/framework_picker/fp_external_check.py" "$f" 0 --mode internal
   fi
   # 組み方の偏り（LAYOUT_RUN?・ELEMS?・警告のみ・v3.13）
   gate "組み方の偏り"    "$SELF_DIR/layout_run_check.py" "$f" 0 --warn-only

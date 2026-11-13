@@ -39,6 +39,8 @@ ci_head.py — 正典CSS連結の唯一の標準方式（共通HEAD）
   python3 5co-CI-kit/ci_head.py --no-mobile-fit    # スマホ幅の縮小（既定 ON・v3.12.6）を付けない
   python3 5co-CI-kit/ci_head.py --no-cover-motion  # 表紙モーションの CSS（既定 ON・v3.12.6）を付けない
   python3 5co-CI-kit/ci_head.py --apply-cover-motion deck.html [-o out.html]
+  python3 5co-CI-kit/ci_head.py --fill-whitespace-photo deck.html -o out.html [--ws-category nail] [--ws-audience "female 20-59"] [--ws-pages p02,p06] [--ws-assets ledger.json] [--external]
+      # 余白に人物写真（オプトイン・ws_photo/WS_PHOTO_RULE.md）。社外版は台帳で external_ok の素材だけ
                                                # 組み上がったデッキの表紙・中扉に cm-field＋数字断片を足す（v3.12.6）
   python3 5co-CI-kit/ci_head.py --cover-motion-engine euclid --apply-cover-motion deck.html
                                                # 数字背景を従来の Euclidean に戻す（既定は depth・2026-11-05）
@@ -491,7 +493,7 @@ def apply_cover_motion(html: str, dividers: bool = True, check: bool = True,
 
 # ---------------------------------------------------------------- 本文ヘッダーの数字の帯（v3.17.0 試作・2026-11-05）
 # モーションディレクター仕様 rev4・バリアントB（速さ1.0倍・数字126個）。若松さん承認 2026-11-05 12:29。
-# エンジンは表紙と同じ cover_motion/depth/oracle-school-depth.min.js（バイト列そのまま）。オプトイン＝
+# エンジンは表紙と同じ cover_motion/depth/oracle-school-depth.min.js（バイト列そのまま）。v3.17 はオプトイン、v3.18.1 から本文ページは必須（header_band_check.py）＝
 # apply_header_motion を呼んだデッキだけ変わる。帯は .hdr を直下に持つ本文ページだけ（表紙・中扉・dark・
 # data-hb="off" の節は対象外）。帯のあるページだけヘッダーの余白を詰める（文字の大きさは不変）。
 HEADER_MOTION_CSS = DEPTH_MOTION_DIR / "header_motion.css"
@@ -539,6 +541,98 @@ def apply_header_motion(html: str):
             block = "\n".join(head)
             out = out.replace("</head>", block + "\n</head>", 1) if "</head>" in out else block + "\n" + out
     return out, n
+
+
+# ---------------------------------------------------------------- ページの名前をロゴの行へ（v3.20.0・2026-11-11）
+# 若松さん指示 2026-11-11 15:18「タイトルはかえません。ロゴ、ページの名前、ページタイトルで３行になっているものを2行にするという意味です」
+# 15:19「本日の要点や年間進捗はタイトルではなく、ページの名前」。
+# 見出し h2.title が「名前｜答え」の本文ページは、区切り（全角｜・タグの外の最後の1つ・v3.20.1）の前＝ページの名前を .hdr（ロゴの行）へ
+# 移し、h2 には答えだけを元の HTML のまま残す（大きさ・折り返し・文言は不変・縮めない）。元の見出しは h2 の
+# data-hpn-orig に残し、section に data-talk-h が無ければ元の見出しの文字で足す（発表 T の2段表示が元どおり組める）。
+# 小さいラベル（.hdr の直後の .kicker / .page-name）があるページは、その要素をそのまま .hdr の中へ移す（大きさ・色は不変）。
+# 名前もラベルも無いページは何もしない。表紙・中扉・dark・divider・data-hpn="off" は対象外。冪等。
+# オプトイン＝apply_header_pagename(html)／ci_head.py --apply-header-pagename deck.html。正＝header_pagename/HEADER_PAGENAME_HANDOFF.md
+import html as _html_mod
+HEADER_PAGENAME_DIR = KIT / "header_pagename"
+HEADER_PAGENAME_CSS = HEADER_PAGENAME_DIR / "header_pagename.css"
+_SKIP_HPN = ("cover-full", "dark", "divider", "pd-divider", "ci-hpn")
+_HPN_SEP = "｜"
+_HPN_H2 = re.compile(r'<h2 class="title"([^>]*)>(.*?)</h2>', re.S)
+_HPN_HDR = re.compile(r'<div class="hdr">(.*?)</div>', re.S)
+_HPN_LABEL = re.compile(r'(\s*)<(p|div|span) class="(?:kicker|page-name)"[^>]*>.*?</\2>', re.S)
+
+
+def _hpn_sep_at(h: str) -> int:
+    """タグの外の「最後の」全角｜の位置（v3.20.1・発表 T＝digest_toggle v1.9.3 と同じ。ページの名前に｜が入っても答えの前で分ける）。"""
+    depth, last = 0, -1
+    for k, c in enumerate(h):
+        if c == "<":
+            depth += 1
+        elif c == ">":
+            depth = max(0, depth - 1)
+        elif c == _HPN_SEP and depth == 0:
+            last = k
+    return last
+
+
+def header_pagename_block() -> str:
+    if not HEADER_PAGENAME_CSS.is_file():
+        raise FileNotFoundError(f"{HEADER_PAGENAME_CSS.name} が kit に見つかりません: {HEADER_PAGENAME_CSS}（kit コピーが不完全）")
+    return (f'<style id="ci-header-pagename">\n/* ==== header_pagename/header_pagename.css（正典 5co-CI-kit・編集禁止） ==== */\n'
+            f'{HEADER_PAGENAME_CSS.read_text(encoding="utf-8")}\n</style>')
+
+
+def apply_header_pagename(html: str):
+    """本文ページのページの名前をロゴの行へ移す。返り値 (html, {"split": n, "label": n})。冪等。"""
+    parts = re.split(r'(<section\b[^>]*>)', html)
+    cnt = {"split": 0, "label": 0}
+    for i in range(1, len(parts), 2):
+        m = _SECTION_OPEN.match(parts[i])
+        if not m:
+            continue
+        cls = m.group(2).split()
+        if "slide" not in cls or any(c in cls for c in _SKIP_HPN) or 'data-hpn="off"' in parts[i]:
+            continue
+        rest = parts[i + 1] if i + 1 < len(parts) else ""
+        cut = rest.find("</section>")
+        body, tail = (rest, "") if cut < 0 else (rest[:cut], rest[cut:])
+        hm = _HPN_HDR.search(body)
+        tm = _HPN_H2.search(body)
+        if not hm or not tm or tm.start() < hm.end():
+            continue
+        between = body[hm.end():tm.start()]
+        lm = _HPN_LABEL.match(between)
+        sec_open = parts[i]
+        if lm:  # 小さいラベル → .hdr の中へ（要素はそのまま）
+            label = lm.group(0).strip()
+            new_hdr = f'<div class="hdr">{hm.group(1)}<span class="hdr-psep" aria-hidden="true"></span>{label}</div>'
+            body = body[:hm.start()] + new_hdr + between[:lm.start()] + between[lm.end():] + body[tm.start():]
+            cnt["label"] += 1
+        else:
+            inner = tm.group(2)
+            k = _hpn_sep_at(inner)
+            if k <= 0:
+                continue
+            name, answer = inner[:k], inner[k + 1:]
+            if not re.sub(r"<[^>]+>", "", name).strip() or not re.sub(r"<[^>]+>", "", answer).strip():
+                continue
+            orig_attr = _html_mod.escape(inner, quote=True)
+            new_hdr = (f'<div class="hdr">{hm.group(1)}<span class="hdr-psep" aria-hidden="true"></span>'
+                       f'<span class="kicker hdr-pname">{name}</span></div>')
+            new_h2 = f'<h2 class="title"{tm.group(1)} data-hpn-orig="{orig_attr}">{answer}</h2>'
+            body = body[:hm.start()] + new_hdr + body[hm.end():tm.start()] + new_h2 + body[tm.end():]
+            if "data-talk-h=" not in sec_open:
+                plain = _html_mod.unescape(re.sub(r"<[^>]+>", "", inner))
+                sec_open = sec_open[:-1] + f' data-talk-h="{_html_mod.escape(plain, quote=True)}">'
+            cnt["split"] += 1
+        m2 = _SECTION_OPEN.match(sec_open)
+        parts[i] = f'<section{m2.group(1)}class="{" ".join(cls + ["ci-hpn"])}"{m2.group(3)}>'
+        parts[i + 1] = body + tail
+    out = "".join(parts)
+    if (cnt["split"] or cnt["label"]) and 'id="ci-header-pagename"' not in out:
+        block = header_pagename_block()
+        out = out.replace("</head>", block + "\n</head>", 1) if "</head>" in out else block + "\n" + out
+    return out, cnt
 
 
 def style_block(lang: str = "ja", scale: float = None, interactive: bool = False,
@@ -640,6 +734,31 @@ def main(argv):
             html, n = apply_header_motion(Path(src).read_text(encoding="utf-8"))
             Path(dst).write_text(html, encoding="utf-8")
             print(f"header_motion[depth/B]: pages={n} -> {dst}", file=sys.stderr)
+        elif "--apply-header-pagename" in argv:
+            src = _opt(argv, "--apply-header-pagename")
+            if not src or not Path(src).is_file():
+                raise FileNotFoundError(f"--apply-header-pagename のデッキが見つかりません: {src}")
+            dst = _opt(argv, "-o", str, src)
+            html, n = apply_header_pagename(Path(src).read_text(encoding="utf-8"))
+            Path(dst).write_text(html, encoding="utf-8")
+            print(f"header_pagename: split={n['split']} label={n['label']} -> {dst}", file=sys.stderr)
+        elif "--fill-whitespace-photo" in argv:
+            # オプトイン（v3.21.0・2026-11-11 若松さん決定）: 余白に人物写真（消費者・インフルエンサー・コンサルタント）。規定 ws_photo/WS_PHOTO_RULE.md
+            src = _opt(argv, "--fill-whitespace-photo")
+            if not src or not Path(src).is_file():
+                raise FileNotFoundError(f"--fill-whitespace-photo のデッキが見つかりません: {src}")
+            dst = _opt(argv, "-o", str, None)
+            if not dst or Path(dst).resolve() == Path(src).resolve():
+                raise ValueError("--fill-whitespace-photo は -o に別名を指定（上書きしない）")
+            sys.path.insert(0, str(Path(__file__).resolve().parent / "ws_photo"))
+            import ws_photo
+            only = set(_opt(argv, "--ws-pages", str, "").split(",")) - {""} or None
+            html, pages = ws_photo.apply(Path(src).read_text(encoding="utf-8"),
+                                         _opt(argv, "--ws-assets", str, str(Path(__file__).resolve().parent / "ws_photo" / "assets.json")),
+                                         only, external="--external" in argv,
+                                         category=_opt(argv, "--ws-category", str, None), audience=_opt(argv, "--ws-audience", str, None))
+            Path(dst).write_text(html, encoding="utf-8")
+            print("ws_photo: " + ", ".join(f"{p}={k}" for p, k in pages) + f" -> {dst}", file=sys.stderr)
         elif "--version" in argv:
             print(version_tag())
         elif "--files" in argv:

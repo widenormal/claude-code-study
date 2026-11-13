@@ -15,6 +15,9 @@ footer_stack_check.py — CIスライドHTMLのフッター版スタック検品
   python3 footer_stack_check.py --selftest
 
 終了: 0=OK（または warn-only） / 1=不足 / 2=引数誤り
+  STACK_EMPTY（v3.18.1）: HTML に焼き込まれた版スタックの CI／Template の値が空・「—」・「-」なら
+  --warn-only でも exit 1（kit を template の外へコピーして manifest が見えないまま組んだデッキが
+  「CI v3.18.0 · Template —」で配られた事故の回収・2026-11-08）。
 """
 from __future__ import annotations
 
@@ -25,6 +28,23 @@ from pathlib import Path
 KIT = Path(__file__).resolve().parent
 sys.path.insert(0, str(KIT))
 import ci_head  # noqa: E402
+
+
+_LABEL = re.compile(r'CI (\S*)(?: · Shelpha (\S*))? · Template ([^"<·\s]*)')
+_EMPTY = {"", "—", "-", "–", "?"}
+
+
+def empty_version_issues(text: str, path: str) -> list[str]:
+    """HTML に実際に焼き込まれた版スタックの値を見る（kit 側の現在値ではなく出力そのもの）。"""
+    issues = []
+    for m in _LABEL.finditer(text):
+        ci, _sh, tpl = m.groups()
+        if ci.strip() in _EMPTY or not ci.startswith("v"):
+            issues.append(f"{path}: STACK_EMPTY 版スタックの CI 版が空: {m.group(0)!r}")
+        if tpl.strip() in _EMPTY:
+            issues.append(f"{path}: STACK_EMPTY 版スタックの Template 版が空: {m.group(0)!r}"
+                          "（template-manifest.json が見える場所の kit で組み直す）")
+    return sorted(set(issues))
 
 
 def check_html(text: str, path: str) -> list[str]:
@@ -39,7 +59,7 @@ def check_html(text: str, path: str) -> list[str]:
         label = ci_head.footer_stack_label()
         if "CI " not in label or "Template " not in label:
             issues.append(f"{path}: footer_stack_label が不正: {label!r}")
-    return issues
+    return issues + empty_version_issues(text, path)
 
 
 def selftest() -> int:
@@ -61,6 +81,9 @@ def selftest() -> int:
         print("SELFTEST FAIL: good should pass"); ok = False
     if not check_html(bad, "bad.html"):
         print("SELFTEST FAIL: bad should fail"); ok = False
+    dash = good.replace(f"Template {ci_head.template_version()}", "Template —")
+    if not empty_version_issues(dash, "dash.html") or empty_version_issues(good, "good.html"):
+        print("SELFTEST FAIL: Template — は STACK_EMPTY"); ok = False
     print("footer_stack_check.py --selftest:", "OK" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -73,20 +96,22 @@ def main(argv: list[str]) -> int:
     if not files:
         print("使い方: footer_stack_check.py <deck.html>…", file=sys.stderr)
         return 2
-    issues = []
+    issues, hard = [], False
     for f in files:
         path = Path(f)
         if not path.is_file():
             issues.append(f"{f}: ファイルが無い")
             continue
-        issues.extend(check_html(path.read_text(encoding="utf-8", errors="replace"), f))
+        found = check_html(path.read_text(encoding="utf-8", errors="replace"), f)
+        hard = hard or any("STACK_EMPTY" in i for i in found)
+        issues.extend(found)
     if not issues:
         print(f"{files[0]}: OK" if len(files) == 1 else f"{len(files)} files: OK")
         return 0
     for i in issues:
         print(i)
     print(f"{files[0]}: NG" if len(files) == 1 else "NG")
-    return 0 if warn_only else 1
+    return 1 if hard or not warn_only else 0
 
 
 if __name__ == "__main__":

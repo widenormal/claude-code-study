@@ -1,0 +1,9 @@
+/* ws-photo.css — 余白の人物写真（CI トークンのみ・#C3D7EE 角丸面に切り抜き・頭は面の上に出してよい・文字に重ねない） */
+section.slide:has(> .ws-photo){position:relative;}
+.ws-photo{position:absolute; margin:0; z-index:0; pointer-events:none; display:block;}
+.ws-photo .ws-panel{position:absolute; left:0; right:0; top:34%; bottom:16px; background:var(--crystal,#C3D7EE); border-radius:16px;}
+.ws-photo img{position:absolute; left:0; right:0; top:0; bottom:16px; width:100%; height:calc(100% - 16px); object-fit:contain; object-position:center bottom; animation:none !important;}
+.ws-photo figcaption{position:absolute; left:0; right:0; bottom:0; height:16px; line-height:16px; font-size:10px; color:var(--ink-60,#5a6470); text-align:right; letter-spacing:.04em; white-space:nowrap; overflow:hidden;}
+html.ci-overview .ws-photo{display:none;}
+/* ダイジェストは keep 以外を隠す（:not() の多い詳細度）ので、:is(#id) で詳細度を上げて、余白写真だけは出す（判定はダイジェストの配置で測り直し済み） */
+html section.slide[data-page-mode="digest"] > :is(.ws-photo, #ws-photo-specificity){display:block !important; visibility:visible !important;}

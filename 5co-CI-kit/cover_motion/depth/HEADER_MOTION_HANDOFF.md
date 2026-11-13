@@ -5,7 +5,8 @@
 ## 使い方
 - Python: `html, n = ci_head.apply_header_motion(html)`（apply_cover_motion の後でも前でもよい・冪等）
 - CLI: `python3 ci_head.py --apply-header-motion deck.html [-o out.html]`
-- 帯を付けない本文ページ: `<section class="slide" data-hb="off">`
+- 帯を付けない本文ページ: `<section class="slide" data-hb="off" data-hb-reason="理由">`（目次・静的な資料など）
+- **v3.18.1〜 必須**: 版スタンプ v3.17.0 以上のデッキは対象の本文ページに帯が必要（オプトインは廃止）。ビルダーの最後に apply_cover_motion と並べて呼ぶ。検品＝`header_band_check.py`（ci-gates「ヘッダーの帯」・HB_MISSING は落とす／理由の無い data-hb="off" は HB_REASON? 警告）
 
 ## 形
 - 帯: 上0〜118px・全幅・端はぼかさず切る（edgeFade 0・overflow:hidden）。z-index 0、ヘッダー（.hdr / h2.title / .accent-bar / .corner）は z-index 1。

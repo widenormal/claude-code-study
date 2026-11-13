@@ -3,6 +3,84 @@
 > **これは「スライド媒体」の版ログ**です。スライドの正本は本キット（template `5co-CI-kit`）。
 > 全媒体共通の**ブランド版**は Drive `5co-CI/CHANGELOG.md` ＋ `BRAND_GUIDELINE.md` が正。
 
+## v3.21.1（2026-11-11）— ピッカーのバー表記・提出プレビューの修正印非表示・社外版画像の軽量化・OKR 型
+CIスライドの依頼（若松さん指示 2026-11-11 19:20「表示中を「提出プレビュー」に、非表示を「編集モード」に修正してください」／19:24「写真を軽い形式に変えて小さくします」／19:37 提出プレビューでは修正箇所が分からないように／Pillow なしでも書き出しを落とさない／OKR は必ず使う Framework）。
+- **バーの状態表記（社内版のみ）**：今「表示中」と出ていた状態（ピッカーとテキスト修正の操作が出ているとき）は「提出プレビュー」、今「非表示」と出ていた状態（操作を隠したとき）は「編集モード」。ボタンの text・title・aria-label を同じ文言にする（`framework_picker/ci-framework-picker.js`）
+- **提出プレビューではテキスト修正の印を出さない（社内版・若松さん指示 19:37）**：`html.ci-fp-hidden`（および `#static`・印刷）では取り消し線・下線・点線の枠・背景・「要確認」バッジをすべて消し、新しい文だけを通常の本文と同じ見た目で出す（編集前の文には戻さない）。編集モードでは従来の印を出す。「修正を反映した版を書き出す」と `fp_build.py external` は印のクラス・スタイルを残さず、新しい文だけにする（`unwrap_te_marks`）
+- **社外版の埋め込み画像を軽量化（`fp_build.py external` のみ・社内版は不変）**：`framework_picker/fp_lighten.py`。写真（透過の無い PNG／JPEG）は WebP 品質 85・長辺 1600px 以下。ロゴや透過が必要な切り抜きは透過 WebP（小さなロゴは可逆を優先）。SVG はそのまま。このデッキの要素に当てはまらない CSS の kit 背景（例：`.slide.light` の数字背景）は除外する。変換後が大きくなるときは元のバイトを残す。**Pillow が無いときは WebP 化を飛ばして警告を出し、書き出しは成功する**（未使用背景の除外は Pillow なしでも行う）
+- **OKR 型を Framework ピッカーに追加（社内版のみ・必ず使う Framework）**：目標と実績がページにあればおすすめの先頭に出す（無ければ出さない）。上段 Objective（目標＝適正/必達と実績＝対必達・対適正・YoY・○△×）→ シリーズ別カード（商品画像・目標・実績＋達成率＋YoY＋○×、広告費、広告経由売上＋ROAS、達成率推移）→ 下段 KR1〜3（値・目標・達成率・判定・期間）→ 考察帯。ページの実データだけで描き、無い値は作らない。単一選択・保存ボタン無し・サムネは模式図・英語 ID は出さない、は従来どおり。社外版の書き出しでは除去する
+- 規定：`framework_picker/README.md`・V3.2_FORMAT。FIGURES_GUIDE など、旧バー表記に触れていた箇所は無し
+- CSS・トークン・寸法・そのほかの機能（単一選択・ページの数字で描く・「保存」廃止・余白の人物写真）は v3.21.0 のまま
+- **Shelpha の方針は v3.19.2 のまま**（フッター「CI · Shelpha · Template」・`--external` の禁止語は Ignite・DMT）
+- テスト `framework_picker/test_fp_v3211.py`（バー表記）、`test_fp_preview_marks.py`（提出プレビューの印非表示・unwrap・社外版に印が残らない）、`test_fp_lighten.py`（写真の WebP 化・長辺・切り抜きの透過・未使用背景の除外・社内版は軽量化しない・Pillow が無いときはスキップして成功）、`test_fp_okr.py`（OKR をおすすめ先頭・目標と実績が無ければ出さない・実データだけで描く・英語 ID 非表示）、既存 `test_fp_v3210.py`・`ws_photo/test_ws_photo.py` も通る
+- 版: `VERSION` v3.21.1（2026-11-11）／`template-manifest.json` 2026.11.21。
+
+## v3.21.0（2026-11-11）— 余白の人物写真（オプトイン）＋ ピッカーでダイジェストの図を写真に置き換え（社内版のみ）
+CIスライドの依頼（若松さん 2026-11-11 決定「20〜59歳 2〜5はyes」「紫苑ミラは顧客むけでも問題ありません」）。
+- **`ws_photo/` 新設＋`ci_head.py --fill-whitespace-photo deck.html -o out.html [--ws-category nail] [--ws-audience "female 20-59"] [--ws-pages …] [--ws-assets …] [--external]`（オプトイン）**：描画後にブラウザで本文エリアを12列グリッド（正方モジュール）で測り、**本文エリアの15%以上・3列×2行以上（高さ150px以上）**の空きがあるページに人物写真を1枚入れる（Amazon人物型＝#C3D7EE の角丸面に切り抜き人物・右寄せ下揃え・文字に重ねない）。通常表示・ダイジェスト・発表（T）でそれぞれ判定。表紙・中扉・SERP・通常表示で表が見えるページ・ほかの人物写真があるページ・`data-ws-photo-skip` は入れない。付けない出力は従来どおり
+- ペルソナはページの主題で決める（広告・SNS＝インフルエンサー／売上・購買・検索＝消費者／施策・計画・進捗＝コンサルタント。手で決めるなら `data-ws-photo`）
+- 消費者・インフルエンサーは**商品カテゴリー × 購入層**で絞る：宣言 `<html data-ws-category data-ws-audience>`→指定→handoff→本文の語→カテゴリーの既定（nail・skincare＝女性）。決まらなければ入れない（コンサルタントだけ）。インフルエンサーはカテゴリー一致のみ
+- 素材は台帳 `ws_photo/assets.json`（persona・gender・age・categories・審査の根拠・status・**external_ok**）。approved だけ使う。素材ファイルは kit に入れない（台帳のフォルダ基準 `ws_photo/photos/`・無い素材は使わない）。WebP 長辺1600px以下
+- **権利の判断を素材ごとに**：社外版（`--external`／`fp_build.py external --ws-photo`）は external_ok の素材だけ。デッキ単位の `--rights-confirmed` は廃止（付けても無視して注意を出す）。2026-11-11 時点で external_ok＝INF-02 紫苑ミラ（ネイル）・consumer_01_headroom（Amazonユーザー）・facing_marketer_03_v5（コンサルタント）の3つ（後の2つは同日の追加指示「紫苑ミラと同じく顧客向けOK」）
+- **Framework ピッカー（社内版のみ）**：ダイジェストの図（`.dgx-cmp`、id は `pNN-dgN`＝既存の id はずらさない）の一覧の先頭に「人物写真（消費者・インフルエンサー・コンサルタント）」「任意の写真（ファイルから選ぶ）」。写真は図の枠いっぱい・高さはグリッドの行（最低2行）。元に戻す・再読み込み・「修正を反映した版を書き出す」に対応。`fp_build.py internal --photos ledger.json`。社外版には入らない（`#ci-fp-photos` を外す）
+- **ピッカーのバーから「保存」を廃止（若松さん指摘 2026-11-11）**：`*.fp-selections.json` のダウンロードは一切しない。型の選択・文言の修正・写真の置き換えは localStorage にその場で自動保存し、反映は「修正を反映した版を書き出す」（HTML）だけ。原因＝v3.20.0〜v3.20.1 の v3192i にも「保存」（JSON 書き出し）が残っていた
+- **Framework は1つの図に1つ（単一選択・若松さん指摘 2026-11-11 p10）**：押すとその型に切り替え／別の型で置き換え／同じ型の再押下で元の図。「複数選べます」「選択中 n 件」とボタンの件数バッジを廃止。旧版で複数選んだ記録は最後の1つだけ残す
+- **型はこのページの数字で描けるものだけ**：見本の絵（積み上げ・流れの矢印など）で図を置き換えない。おすすめ・「ほかの型を見る」とも数字で描ける型だけ（無ければ「このページの数字で描ける型がありません」）。表の値「630万」「1,989万」「¥114」「▲542万」「1.2億」を読む（v3.20.1 は「万」付きの値を読めず、p10 の表がすべて見本扱いだった）。行が多い表は行を横軸にし、「計」「合計」の行は描かない。書き出しも数字で描けない型は元の図のまま
+- **ピッカーの「保存」ボタンを廃止（若松さん指摘 2026-11-11）**：v3.20.1（v3192i）のバーにあった「保存」（`*.fp-selections.json` のダウンロード）を外し、JSON のダウンロードは一切しない。選択・文言の修正・写真の置き換えは localStorage にその場で自動保存し、反映は「修正を反映した版を書き出す」（HTML 1ファイル）だけ。`CIFP.exportJSON` も削除
+- **ピッカーを単一選択に（若松さん指摘 2026-11-11・p10）**：1つの図に Framework は1つ。押すとその型に切り替え、別の型で置き換え、同じ型をもう一度押すと元の図。「複数選べます」「選択中 n 件」とボタンのバッジの件数を廃止（旧版で保存された複数選択は最後の1つだけ残す）
+- **見本の絵で描かない**：型はこのページの数字（表の値）で描けるものだけを、おすすめにも「ほかの型を見る」にも出す。描けない型は確定・書き出しもしない（元の図のまま）。表の値は「630万」「1,989万」「¥114」「▲542万」も読む（v3.20.1 は「万」付きを読めず、p10 で全部が見本だけになっていた）。行が多い表は行を横軸に描き、「計」「合計」の行は描かない
+- キャプション＝ペルソナ名（「Amazonユーザー」「ネイルのインフルエンサー」「コンサルタント」）・alt＝「ペルソナ名（架空の人物）」（COPY_GUIDE ルール11）
+- 規定：`ws_photo/WS_PHOTO_RULE.md`（正）・FIGURES_GUIDE §2-2・COPY_GUIDE ルール11・V3.2_FORMAT・SLIDE_DESIGN_GUIDELINES §4・DIGEST_GUIDE・framework_picker/README
+- Shelpha の方針は v3.19.2 のまま（フッター「CI · Shelpha · Template」・`--external` の禁止語は Ignite・DMT）
+- テスト `framework_picker/test_fp_v3210.py`（「保存」・JSON ダウンロードが無い・ダウンロードは「修正反映.html」の1か所だけ・単一選択・見本の絵で描かない・「万」の読み取り。v3.20.1 の正本では5件とも落ちる）、`ws_photo/test_ws_photo.py`（宣言・既定の購入層・男性・未決・カテゴリー一致・社外は external_ok だけ・素材ファイルが無い・冪等）
+- 版: `VERSION` v3.21.0（2026-11-11）／`template-manifest.json` 2026.11.20。
+
+## v3.20.1（2026-11-11）— ページの名前の区切りを最後の｜に（発表 T とそろえる）
+- **`ci_head.apply_header_pagename`**：見出し「名前｜答え」の区切りを、タグの外の**最後の**全角｜に変更（v3.20.0 は最初の｜で、ページの名前に｜が入ると名前が途中で切れていた）。発表（T）の digest_toggle v1.9.3 と同じ規則
+- テスト `tests/ci-header-pagename.test.sh`：｜が2つある見出しの回帰（旧コードでは落ちることを確認）
+- 版: `VERSION` v3.20.1（2026-11-11）／`template-manifest.json` 2026.11.19。
+
+## v3.20.0（2026-11-11）— 本文ヘッダー2行（ページの名前をロゴの行へ）＋ Framework ピッカー v3192i（社内版のみ）
+CIスライドの依頼（若松さん 2026-11-11 16:00「これでtemplateに展開依頼を」）。2つの候補（ヘッダー2行 v3.20.0候補・ピッカー v3192f〜i）を1つにまとめた。
+- **`header_pagename/` 新設＋`ci_head.apply_header_pagename`／`--apply-header-pagename`（オプトイン）**：見出し「名前｜答え」の名前（または .hdr 直後の小さいラベル）をロゴの行へ移し、1行目＝ロゴ｜ページの名前、2行目＝タイトル。ヘッダーの高さ・タイトルの大きさ・文言は不変。規定4件（V3.2_FORMAT・SLIDE_DESIGN_GUIDELINES §5・ブランドガイドブック β0.7・FIGURES_GUIDE）を改訂
+- **`digest_toggle.py` v1.9.3**：発表（T）の見出し2段は、タグの外の**最後の**全角｜で「話題／答え」に分ける（ページの名前に｜が入ると最初の｜で切れていた不具合の修正。例「Series OKR ｜ September｜答え」）
+- **Framework ピッカー v3192i（社内版のみ）**：v3192d（右外の列・「Framework」表記）→ e（サムネイル・ページの数字で描き替え）→ f（グリッド枠の実寸プレビュー・確定・画像/表の挿入・`fp_export_applied.py`）→ g（その場プレビュー）→ h（書き出しの組み直し）→ i（組み直しの修正）を積み上げ（v3192c は d に含まれる）。社外版には編集機能を入れない（`fp_build.py external` が外し、`fp_external_check.py` の PICKER に「Framework ピッカー／Framework▾／Framework を選ぶ」を追加）
+- Shelpha の方針は v3.19.2 のまま（フッター「CI · Shelpha · Template」・`--external` の禁止語は Ignite・DMT）
+- テスト `tests/ci-header-pagename.test.sh` 追加（2行化・冪等・対象外・発表 T の最後の｜で分ける）、`tests/ci-framework-picker.test.sh` を v3.20.0 に
+- 版: `VERSION` v3.20.0（2026-11-11）／`template-manifest.json` 2026.11.18。
+
+## v3.19.2（2026-11-11）— v3.19.1 の Shelpha 除外を取り消す（方針の読み違い）
+- v3.19.1 の Shelpha 除外は方針の読み違いだったので取り消す。正は若松さん決定 2026-11-03（v3.14.2）＝「Shelpha は出してよく、版も見えるようにする」。顧客向け（社外版）でもフッターに Shelpha 版を既定で出す
+- **`fp_external_check.py`**：`VENDOR_NAMES` から Shelpha を外す（Ignite・DMT は大文字小文字を区別せず禁止のまま）
+- **`fp_build.py external`**：フッター版スタックの Shelpha 版を外す処理を削除＝ci_head の既定どおり「CI · Shelpha · Template」
+- テスト `tests/ci-framework-picker.test.sh`：Shelpha のフッター・本文があっても通る／Ignite・DMT・ピッカー・文言修正の痕跡は落ちる
+- ci_head.py・footer_stack_check.py は変更なし（コメントどおり）
+- 版: `VERSION` v3.19.2（2026-11-11）／`template-manifest.json` 2026.11.17。
+
+## v3.19.1（2026-11-11）— 社外版に Shelpha を一切出さない（v3.19.0 の例外を撤回）
+- 前提の訂正：顧客向け（社外版）のフッターに出すのは CI キットと Template の版だけ。Shelpha 版を出すのは社内版だけ。v3.19.0 で入れた「· Shelpha <版> ·」を通す例外は誤り
+- **`fp_external_check.py`**：版スタックの例外を外し、Shelpha は例外なく FP_TRACE vendor で落とす
+- **`fp_build.py external`**：書き出し時にフッター版スタックから Shelpha 版を外す（`strip_shelpha_stack`・「CI … · Template …」になる）。ci_head の既定は変えない（社外版の書き出しだけで直す）
+- テスト `tests/ci-framework-picker.test.sh`：Shelpha 版のフッターを残した版が落ちる回帰・書き出しで外れることを追加
+- 版: `VERSION` v3.19.1（2026-11-11）／`template-manifest.json` 2026.11.16。
+
+## v3.19.0（2026-11-11）— 図の型ピッカーと文言修正（社内版のみ）・社外版の書き出しと検品
+CIスライドの依頼（2026-11-11・若松さん OK 12:25 JST）。
+- **`framework_picker/` 新設**：`fp_build.py internal`（各図に型ピッカー＋文言修正を入れた社内版・1ファイルで開ける）／`fp_build.py external`（ピッカー・文言修正の DOM/CSS/JS・型の一覧・data-fp-*・ローカル参照を外し、相対パスの画像を data: で埋め込む。痕跡が残れば書き出さない）／`fp_apply_edits.py`（文言修正の反映）／`frameworks_catalog.json`（SLIDE-PATTERN 129種）・`make_catalog.py`・`fp_external_check.py`
+- **`ci-gates.sh --external`**：社外版の痕跡（FP_TRACE picker/path/ref）を落とす。付けないときはピッカー入りの社内版に FP_INTERNAL? を警告
+- **仕入れ元などの名前を社外版で落とす（契約上の必須）**：`fp_external_check.py` の `VENDOR_NAMES`＝Ignite・DMT・Shelpha（大文字小文字を区別しない・FP_TRACE vendor）。英数字の途中（base64）は数えない。（v3.19.1 で版スタックの例外を撤回）。`fp_build.py external` も同じ検査で書き出しを止める
+- テスト `tests/ci-framework-picker.test.sh` 追加（わざと痕跡・仕入れ元名を残した版が落ちる回帰）
+- 版: `VERSION` v3.19.0（2026-11-11）／`template-manifest.json` 2026.11.15。
+
+## v3.18.1（2026-11-08）— 「最新版」の取り違え防止：ヘッダーの帯と版スタックの空値を検品で落とす
+CIスライド（2026-11-08）。版スタンプ v3.18.0 なのに本文ヘッダーの数字の帯（.ci-hb / ci-hb-on）が0件で、フッターが「CI v3.18.0 · Template —」のデッキが最新版として出た。v3.17.0 の帯はオプトインで、呼び忘れても版番号だけが上がり、footer_stack_check は HTML ではなく kit 側の現在値を見ていたため、どの検査も鳴らなかった。
+- **`header_band_check.py` 新設**：版スタンプ v3.17.0 以上のデッキで、直下に `.hdr` を持つ本文ページ（表紙・中扉・dark・divider は対象外＝`ci_head._SKIP_HB` と同じ判定）に帯が無ければ `HB_MISSING`（落とす）。付けない本文ページは `data-hb="off" data-hb-reason="理由"`（理由が無いと `HB_REASON?` 警告のみ）。reduced-motion・`#static`・印刷は止め絵になるだけでマークアップは同じ＝例外にしない
+- **`footer_stack_check.py`**：HTML に焼き込まれた版スタックの値を読み、CI／Template が空・「—」なら `STACK_EMPTY`（`--warn-only` でも exit 1）。他の所見は従来どおり警告
+- **`ci-gates.sh`**：「版スタック」を STACK_EMPTY で落とす扱いに、「ヘッダーの帯」を追加（落とす）
+- 規定の変更：v3.17.0 の「オプトイン＝省略すると版スタンプだけ変わる」は v3.18.1 で廃止。ビルダーの最後に `apply_cover_motion` と並べて `apply_header_motion` を呼ぶ（HEADER_MOTION_HANDOFF.md）
+- テスト `tests/ci-header-band.test.sh` 追加
+- 版: `VERSION` v3.18.1（2026-11-08）／`template-manifest.json` 2026.11.14。
+
 ## v3.18.0（2026-11-05）— 開いた直後の同意画面（#ci-consent）
 CIスライドの依頼（2026-11-05）。正本は候補者用の事業プラン資料 v22（若松さん合格）。見た目と文言はそのまま、宛先などを引数にした。
 - **`consent/apply_consent.py` 新設**：`--mode candidate`（既定）は 5co ロゴ＋取扱注意＋「同意して閲覧する」（mailto・宛先 `--to`・件名【破棄同意】）を全面に出し、押すまで本文を隠す。`#static`・JS 無効・印刷のどれでも本文を出さない。`--mode internal` は同意画面なしで、PDF だけ表紙の右上に取扱注意の注記
