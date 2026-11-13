@@ -1,0 +1,215 @@
+/* ci-framework-picker.css — 社内用「図の型を選ぶ」ピッカー（社外版には入らない・fp_build.py external が外す）
+   スライドの中には何も足さない＝本文のレイアウト・検査は不変。ピッカーは重ねて描く。
+   層は viewport 固定（幅0の絶対配置にしない）。発表モードの transform／実機 Chrome でも描画・座標がずれないようにする。 */
+#ci-fp-layer{position:fixed;left:0;top:0;right:0;bottom:0;width:auto;height:auto;z-index:10050;
+  pointer-events:none;overflow:visible;font-family:var(--sans-ja,"Hiragino Sans","Helvetica Neue",sans-serif)}
+#ci-fp-layer > *{pointer-events:auto}
+html.ci-fp-hidden #ci-fp-layer .ci-fp-chip,
+html.ci-fp-hidden #ci-fp-layer .ci-fp-frame,
+html.ci-fp-hidden #ci-fp-layer .ci-te-page,
+html.ci-fp-hidden #ci-fp-layer .ci-fp-ins-btn,
+html.ci-fp-hidden #ci-fp-layer .ci-fp-pop,
+html.ci-fp-hidden #ci-fp-layer .ci-fp-ins-pop,
+html.ci-fp-hidden #ci-fp-layer .ci-te-btn,
+html.ci-fp-hidden #ci-fp-layer .ci-te-pop,
+html.ci-fp-hidden #ci-fp-layer .ci-fp-ins-tools{display:none}
+#ci-fp-layer .ci-fp-frame{position:absolute;pointer-events:none;border:1.5px dashed #101820;border-radius:4px;opacity:0;transition:opacity .15s}
+#ci-fp-layer .ci-fp-frame.on{opacity:.55}
+#ci-fp-layer .ci-fp-chip{position:absolute;display:inline-flex;align-items:center;gap:3px;height:20px;padding:0 6px;
+  border:1px solid #101820;border-radius:10px;background:rgba(255,255,255,.94);color:#101820;font:600 11px/1 inherit;cursor:pointer;
+  box-shadow:0 1px 3px rgba(16,24,32,.18);white-space:nowrap}
+#ci-fp-layer .ci-fp-chip:hover,#ci-fp-layer .ci-fp-chip[aria-expanded="true"]{background:#C3D7EE;color:#101820}
+#ci-fp-layer .ci-fp-chip .n{display:inline-block;min-width:16px;height:16px;border-radius:8px;background:#101820;color:#fff;font-size:10px;line-height:16px;text-align:center}
+#ci-fp-layer .ci-fp-chip .n:empty{display:none}
+#ci-fp-layer .ci-fp-chip.has{background:#101820;color:#fff}
+#ci-fp-layer .ci-fp-chip.has .n{background:#C3D7EE;color:#101820}
+#ci-fp-layer .ci-fp-pop{position:absolute;z-index:20;width:488px;max-height:580px;display:flex;flex-direction:column;background:#fff;color:#101820;
+  border:1px solid #101820;border-radius:8px;box-shadow:0 8px 24px rgba(16,24,32,.22);font-size:12px;line-height:1.45}
+#ci-fp-layer .ci-fp-pop[hidden]{display:none}
+#ci-fp-layer .ci-fp-pop header{padding:10px 12px 8px;border-bottom:1px solid #C3D7EE}
+#ci-fp-layer .ci-fp-pop header b{font-size:13px}
+#ci-fp-layer .ci-fp-pop header small{display:block;color:#5b6570;margin-top:2px}
+#ci-fp-layer .ci-fp-tools{display:flex;gap:8px;align-items:center;margin-top:8px}
+#ci-fp-layer .ci-fp-tools input[type=search]{flex:1;height:26px;padding:0 8px;border:1px solid #9aa3ad;border-radius:4px;font:inherit}
+#ci-fp-layer .ci-fp-list{overflow:auto;padding:4px 12px 8px;flex:1}
+#ci-fp-layer .ci-fp-cat{margin:10px 0 4px;font-weight:700;font-size:11px;color:#5b6570;border-bottom:1px solid #eef1f4;padding-bottom:2px}
+#ci-fp-layer .ci-fp-row{padding:3px 0}
+#ci-fp-layer .ci-fp-row label{display:flex;gap:6px;align-items:flex-start;cursor:pointer}
+#ci-fp-layer .ci-fp-row code{font-size:10px;color:#5b6570}
+#ci-fp-layer .ci-fp-row .kit{font-size:10px;padding:0 4px;border-radius:3px;background:#C3D7EE;margin-left:4px}
+#ci-fp-layer .ci-fp-row .more{display:none;margin:4px 0 4px 22px;gap:6px}
+#ci-fp-layer .ci-fp-row.on .more{display:flex}
+#ci-fp-layer .ci-fp-row .more input{flex:1;height:24px;padding:0 6px;border:1px solid #9aa3ad;border-radius:4px;font:inherit}
+#ci-fp-layer button.ci-fp-btn{height:24px;padding:0 8px;border:1px solid #101820;border-radius:4px;background:#fff;color:#101820;font:inherit;cursor:pointer;white-space:nowrap}
+#ci-fp-layer button.ci-fp-btn:hover{background:#C3D7EE}
+#ci-fp-layer button.ci-fp-btn.pri{background:#101820;color:#fff}
+#ci-fp-layer .ci-fp-pop footer{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid #C3D7EE}
+#ci-fp-layer .ci-fp-pop footer .sp{flex:1}
+#ci-fp-layer .ci-fp-preview{position:absolute;background:var(--white,#fff);border:none;border-radius:0;display:block;overflow:visible}
+#ci-fp-layer .ci-fp-preview .cap{position:absolute;left:0;bottom:100%;margin-bottom:2px;height:20px;max-width:100%;display:flex;gap:6px;align-items:center;padding:1px 6px;background:var(--crystal,#C3D7EE);font-size:10px;font-weight:600;border-radius:3px 3px 0 0;box-sizing:border-box;white-space:nowrap;z-index:2}
+#ci-fp-layer .ci-fp-preview .cap span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ci-fp-layer .ci-fp-preview .cap .tabs button{font-size:10px;height:20px;padding:0 6px;margin-left:2px}
+#ci-fp-layer .ci-fp-preview .body{width:100%;height:100%;overflow:hidden;background:var(--white,#fff)}
+#ci-fp-layer .ci-fp-preview svg,#ci-fp-layer .ci-fp-preview .ci-chart-split,#ci-fp-layer .ci-fp-preview .ci-chart-live-table{width:100%;height:100%;display:block}
+#ci-fp-layer .ci-fp-preview .ci-chart-live-table{overflow:auto}
+#ci-fp-bar{position:fixed;right:12px;bottom:12px;z-index:10051;display:flex;gap:6px;align-items:center;padding:6px 8px;background:#fff;
+  border:1px solid #101820;border-radius:18px;box-shadow:0 2px 8px rgba(16,24,32,.2);font:600 12px/1 var(--sans-ja,"Hiragino Sans",sans-serif);color:#101820}
+#ci-fp-bar button{height:24px;padding:0 10px;border:1px solid #101820;border-radius:12px;background:#fff;color:#101820;font:inherit;cursor:pointer}
+#ci-fp-bar button[aria-pressed="true"]{background:#101820;color:#fff}
+#ci-fp-bar .lbl{padding:0 4px}
+/* 検査・印刷・PDF・#static では出さない（最終状態＝社外版と同じ見た目） */
+html.ci-fp-static #ci-fp-layer,html.ci-fp-static #ci-fp-bar{display:none!important}
+@media print{#ci-fp-layer,#ci-fp-bar{display:none!important}}
+/* 一覧（O）では出さない。縦並び・発表では出す */
+html.ci-overview #ci-fp-layer .ci-fp-chip,
+html.ci-overview #ci-fp-layer .ci-fp-frame,
+html.ci-overview #ci-fp-layer .ci-te-page,
+html.ci-overview #ci-fp-bar{display:none}
+/* 発表モード：右に Framework 列の余白を残し、スライドは残りの中央へ（ピッカー側で --ci-fit も合わせる） */
+html.ci-present.ci-fp-rail .slide{left:calc((100% - var(--ci-fp-rail, 0px)) / 2);}
+
+
+/* シンプルパネル：おすすめのサムネイル */
+#ci-fp-layer .ci-fp-pop header .ci-fp-lead{margin:6px 0 0;font-size:13px;font-weight:700;color:#101820}
+#ci-fp-layer .ci-fp-pop header .ci-fp-count{margin:4px 0 0;font-size:11px;color:#5b6570}
+#ci-fp-layer .ci-fp-thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 12px;overflow:auto}
+#ci-fp-layer .ci-fp-thumbs.more{max-height:220px}
+#ci-fp-layer .ci-fp-thumb{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:2px;margin:0;padding:6px 5px 5px;
+  border:1px solid #C3D7EE;border-radius:8px;background:#fff;color:#101820;cursor:pointer;text-align:center;font:inherit}
+#ci-fp-layer .ci-fp-thumb:hover{background:#F0F5FB}
+#ci-fp-layer .ci-fp-thumb.on{border-color:#101820;background:#F0F5FB;box-shadow:inset 0 0 0 1px #101820}
+#ci-fp-layer .ci-fp-thumb .ck{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:8px;background:#101820;color:#fff;
+  font-size:11px;line-height:16px;display:none;z-index:1}
+#ci-fp-layer .ci-fp-thumb.on .ck{display:block}
+#ci-fp-layer .ci-fp-thumb svg{width:100%;height:52px;display:block;background:#F7F9FB;border-radius:4px}
+#ci-fp-layer .ci-fp-thumb .nm{font-size:10px;font-weight:700;line-height:1.25;margin-top:3px}
+#ci-fp-layer .ci-fp-pop .ci-fp-none{margin:8px 0;font-size:12px;color:#5b6570}
+#ci-fp-layer .ci-fp-more{border-top:1px solid #C3D7EE;flex:1;min-height:0;display:flex;flex-direction:column}
+#ci-fp-layer .ci-fp-more > summary{cursor:pointer;padding:8px 12px;font-weight:700;list-style:none}
+#ci-fp-layer .ci-fp-more > summary::-webkit-details-marker{display:none}
+#ci-fp-layer .ci-chart-live-table{overflow:auto;max-height:100%;padding:4px;font-size:8px;line-height:1.3}
+#ci-fp-layer .ci-chart-live-table table{border-collapse:collapse;width:100%;color:#101820}
+#ci-fp-layer .ci-chart-live-table th,#ci-fp-layer .ci-chart-live-table td{border:1px solid #C3D7EE;padding:2px 4px;white-space:nowrap}
+#ci-fp-layer .ci-chart-live-table th{background:#F0F5FB;text-align:left}
+#ci-fp-layer .ci-fp-preview.real .cap{background:#C3D7EE}
+
+/* 各ページの「テキスト修正」（右外側。余白が無い・発表モードではスライド内の右端へ） */
+#ci-fp-layer .ci-te-page{position:absolute;display:inline-flex;align-items:center;height:24px;padding:0 10px;
+  border:1px solid #101820;border-radius:12px;background:rgba(255,255,255,.96);color:#101820;font:600 11px/1 inherit;cursor:pointer;
+  box-shadow:0 1px 3px rgba(16,24,32,.18);white-space:nowrap}
+#ci-fp-layer .ci-te-page:hover{background:#C3D7EE}
+#ci-fp-layer .ci-te-page[aria-pressed="true"]{background:#101820;color:#fff}
+/* 文言の修正（社内版だけ・社外版には入らない） */
+#ci-fp-layer .ci-te-btn{position:absolute;height:22px;padding:0 9px;border:1px solid #101820;border-radius:11px;background:#101820;color:#fff;font:600 11px/1 inherit;cursor:pointer;box-shadow:0 1px 4px rgba(16,24,32,.3)}
+#ci-fp-layer .ci-te-btn[hidden],#ci-fp-layer .ci-te-pop[hidden]{display:none}
+#ci-fp-layer .ci-te-pop{position:absolute;width:360px;padding:10px 12px;background:#fff;color:#101820;border:1px solid #101820;border-radius:8px;box-shadow:0 8px 24px rgba(16,24,32,.22);font-size:12px;line-height:1.5;display:flex;flex-direction:column;gap:6px}
+#ci-fp-layer .ci-te-pop small{color:#5b6570}
+#ci-fp-layer .ci-te-pop textarea{font:inherit;font-size:13px;padding:6px;border:1px solid #9aa3ad;border-radius:4px;resize:vertical}
+#ci-fp-layer .ci-te-pop .w{background:#f6b44a;color:#101820;font-weight:700;padding:4px 6px;border-radius:4px}
+#ci-fp-layer .ci-te-pop .w[hidden]{display:none}
+#ci-fp-layer .ci-te-pop .ft{display:flex;justify-content:flex-end;gap:6px}
+.ci-te-mark{cursor:pointer;background:rgba(195,215,238,.55);border-radius:2px;outline:1px dashed #101820;outline-offset:1px}
+.ci-te-mark del{color:#5b6570;text-decoration:line-through;text-decoration-thickness:1.5px;margin-right:2px}
+.ci-te-mark ins{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
+.ci-te-mark.num{background:rgba(246,180,74,.35);outline:2px solid #f6b44a}
+.ci-te-mark i{font-style:normal;font-size:9px;font-weight:700;background:#f6b44a;color:#101820;border-radius:3px;padding:0 3px;margin-left:3px;vertical-align:1px}
+#ci-fp-bar .te-n{font-weight:700;padding:0 2px}
+#ci-fp-bar .te-n.num{background:#f6b44a;border-radius:4px;padding:2px 6px}
+/* 提出プレビュー（html.ci-fp-hidden）・#static・印刷：修正の印をすべて消し、新しい文だけを元の文章と同じ見た目で出す。
+   編集モード（hidden でないとき）は上の .ci-te-mark の印を出す。v3.21.1・若松さん指示 2026-11-11 19:37 */
+html.ci-fp-hidden .ci-te-mark,
+html.ci-fp-static .ci-te-mark{
+  cursor:inherit;background:none;outline:none;border:none;box-shadow:none;border-radius:0;color:inherit;
+  pointer-events:none}
+html.ci-fp-hidden .ci-te-mark.num,
+html.ci-fp-static .ci-te-mark.num{background:none;outline:none;border:none;box-shadow:none}
+html.ci-fp-hidden .ci-te-mark del,
+html.ci-fp-hidden .ci-te-mark i,
+html.ci-fp-static .ci-te-mark del,
+html.ci-fp-static .ci-te-mark i{display:none}
+html.ci-fp-hidden .ci-te-mark ins,
+html.ci-fp-static .ci-te-mark ins{text-decoration:none;color:inherit;background:none;border:none;outline:none;font-style:inherit}
+@media print{
+  .ci-te-mark del,.ci-te-mark i{display:none}
+  .ci-te-mark,.ci-te-mark.num{cursor:inherit;background:none;outline:none;border:none;box-shadow:none;border-radius:0;color:inherit}
+  .ci-te-mark ins{text-decoration:none;color:inherit;background:none;font-style:inherit}
+}
+
+/* バーの「修正を反映した版を書き出す」 */
+#ci-fp-bar button[data-act="apply"]{margin-left:6px;font-weight:700}
+/* 確定ボタン */
+#ci-fp-layer .ci-fp-pop footer .ci-fp-btn.pri{background:#101820;color:#fff}
+/* 画像・表を挿入 */
+#ci-fp-layer .ci-fp-ins-btn{position:absolute;z-index:4;height:24px;padding:0 8px;border:1px solid #101820;border-radius:4px;background:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+#ci-fp-layer .ci-fp-ins-btn:hover{background:#F0F5FB}
+#ci-fp-layer .ci-fp-ins-pop{position:absolute;z-index:20;width:380px;background:#fff;color:#101820;border:1px solid #101820;border-radius:8px;box-shadow:0 8px 24px rgba(16,24,32,.22);padding:12px;font-size:12px}
+#ci-fp-layer .ci-fp-ins-pop .regs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#ci-fp-layer .ci-fp-ins-pop .drop,#ci-fp-layer .ci-fp-ins-pop .paste-tbl{border:1px dashed #5b6570;border-radius:6px;padding:12px;margin:8px 0;cursor:pointer;background:#F7F9FB}
+#ci-fp-layer .ci-fp-ins-pop .ft{display:flex;align-items:center;margin-top:8px}
+#ci-fp-layer .ci-fp-ins-pop .sp{flex:1}
+.ci-fp-ins,.ci-ins{position:absolute;box-sizing:border-box;overflow:hidden;z-index:6}
+.ci-fp-ins-fig,.ci-ins-fig{margin:0;width:100%;height:100%;display:flex;flex-direction:column}
+.ci-fp-ins img,.ci-ins-fig img{flex:1;min-height:0;object-fit:cover;object-position:center top;width:100%;height:100%;display:block;background:#fff}
+.ci-ins-cap,.ci-ins-fig figcaption{flex:none;font-size:11px;color:var(--ink-60,#5b6570);padding:2px 4px}
+.ci-ins-cap input{width:100%;border:0;border-bottom:1px solid var(--ink-14,#C3D7EE);font:inherit;color:inherit;background:transparent}
+.ci-fp-ins-tools{position:absolute;top:2px;right:2px;z-index:2;display:flex;gap:4px}
+.ci-fp-ins-tools button{font-size:10px;height:20px;padding:0 6px;border:1px solid #101820;background:#fff;border-radius:3px;cursor:pointer}
+.ci-ins-table{width:100%;height:100%;overflow:auto;padding:4px;box-sizing:border-box}
+.ci-ins-table table.sk{width:100%}
+
+html.ci-fp-hidden .ci-fp-ins-tools{display:none !important}
+
+/* プレビューは図の枠の中（zoom / present の scale に乗る）。見出しバーは出さない */
+[data-fp-fig]{position:relative;}
+.ci-fp-preview-in{position:absolute;inset:0;z-index:1;background:var(--white,#fff);overflow:hidden;box-sizing:border-box;}
+.ci-fp-preview-in svg,.ci-fp-preview-in .ci-chart-split,.ci-fp-preview-in .ci-chart-live-table{width:100%;height:100%;display:block;}
+.ci-legacy-legend-off,p.legend[hidden],.legend[hidden]{display:none !important;}
+#ci-fp-layer .ci-fp-chip{height:auto;min-height:20px;max-width:152px;white-space:nowrap;line-height:1.2;padding:2px 6px;}
+#ci-fp-layer .ci-fp-chip .who{font-weight:700;max-width:7.5em;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:bottom;}
+#ci-fp-layer .ci-fp-chip .who:empty{display:none;}
+
+
+
+/* 挿入後の残り区画への再配置（文字サイズは変えない・余白と配置だけ） */
+.slide.ci-fp-reflowing .sgrp-row{display:flex;flex-direction:column;align-items:stretch;gap:2px;padding-top:2px;}
+.slide.ci-fp-reflowing .sgrp-row::before{display:none;}
+.slide.ci-fp-reflowing .okr li::before,
+.slide.ci-fp-reflowing .okr li::after,
+.slide.ci-fp-reflowing .okr ul ul::before{display:none;}
+.slide.ci-fp-reflowing .okr ul{padding-top:2px;}
+.slide.ci-fp-reflowing .okr li{padding:2px 0 0;}
+.slide.ci-fp-reflowing .okr .nd.cat{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:3px;min-width:0;}
+.slide.ci-fp-reflowing .okr .nd.cat .nm{min-height:0;flex:0 0 7em;flex-direction:row;align-items:center;justify-content:flex-start;gap:3px;margin:0;}
+.slide.ci-fp-reflowing .okr .nd.cat .nm img{height:16px !important;width:auto;margin:0 !important;}
+.slide.ci-fp-reflowing .okr .box{height:auto !important;min-height:0;padding:0 5px;margin:0;white-space:nowrap;}
+.slide.ci-fp-reflowing .okr .box .lbl{width:auto;margin-right:3px;}
+.slide.ci-fp-reflowing .okr .trend{margin:0;flex:1 1 auto;}
+.slide.ci-fp-reflowing .okr .nd.big{min-width:0;}
+.slide.ci-fp-reflowing .okr .nd.big .nm{min-height:0;margin-bottom:1px;}
+.slide.ci-fp-reflowing .okr .nd.big .box{padding:2px 8px;margin-top:1px;white-space:normal;}
+.slide.ci-fp-reflowing .kr-band{display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px;align-items:flex-start;}
+.slide.ci-fp-reflowing .kr-band.ci-fp-kr-stack{flex-direction:column;align-items:stretch;}
+.slide.ci-fp-reflowing .kr{flex:1 1 0;min-width:0;padding:2px 6px;box-sizing:border-box;}
+.slide.ci-fp-reflowing .kr-band.ci-fp-kr-stack .kr{flex:0 0 auto;width:100%;max-width:100%;}
+.slide.ci-fp-reflowing .okr-insight{display:flex;flex-direction:column;flex-wrap:nowrap;gap:2px;padding:2px 8px;align-items:flex-start;}
+.slide.ci-fp-reflowing .okr-insight .ins-txt{min-width:0;width:100%;}
+.slide.ci-fp-reflowing .t-note{margin:0 !important;line-height:1.3;}
+.ci-fp-reflowed{box-sizing:border-box;}
+.slide.ci-fp-reflow-tight .kr{padding:0 4px;}
+.slide.ci-fp-reflow-tight .kr .kr-n,.slide.ci-fp-reflow-tight .kr .kr-v,.slide.ci-fp-reflow-tight .kr .kr-s{line-height:1.2;margin:0;}
+.slide.ci-fp-reflow-tight .okr-insight{padding:1px 6px;}
+.slide.ci-fp-reflow-tight .okr-insight .ins-txt{line-height:1.3;}
+.slide.ci-fp-reflow-tight .sgrp-row{gap:1px;padding-top:0;}
+.slide.ci-fp-reflow-tight .sgrp-row > *{gap:1px;line-height:1.2;margin:0;}
+.slide.ci-fp-reflow-tight .okr li{padding:0;}
+.slide.ci-fp-reflow-tight .okr ul{padding-top:0;}
+/* 写真に置き換える（ダイジェスト表示の図・社内版だけ） */
+.ci-fp-photo-opts{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:8px 14px 10px; border-bottom:1px solid var(--ink-10,#e3e7ec); margin-bottom:8px;}
+.ci-fp-photo-h{flex-basis:100%; margin:0; font-size:11px; color:var(--ink-60,#5a6470);}
+.ci-fp-photo-opts .ci-fp-btn.on{background:var(--crystal-25,#eef4fb); border-color:var(--ink,#101820);}
+.ci-fp-photo-persons{flex-basis:100%; display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+.ci-fp-photo-persons .ci-fp-thumb img{width:100%; height:72px; object-fit:cover; object-position:center 15%; background:var(--crystal,#C3D7EE); border-radius:8px; display:block;}
+
+/* OKR 型のライブ描画（図の枠の中。既存の .okr トークンを使う） */
+.ci-fp-preview-in .ci-okr-live,
+.ci-fp-preview-in .okr.ci-okr-live{width:100%;height:100%;overflow:auto;box-sizing:border-box;background:var(--white,#fff);}

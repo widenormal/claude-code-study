@@ -1,0 +1,20 @@
+/* 5co-CI kit v3.20.0 本文ヘッダーの「ページの名前」をロゴの行へ（.slide.ci-hpn にしか効かない）。
+   若松さん指示 2026-11-11 15:18「タイトルはかえません。ロゴ、ページの名前、ページタイトルで３行になっているものを2行にするという意味です」
+   ／15:19「本日の要点や年間進捗はタイトルではなく、ページの名前」。
+   1行目＝ロゴ｜縦の区切り線｜ページの名前、2行目＝ページタイトル（見出し「名前｜答え」の答え。大きさ・折り返し・文言は不変）。
+   ページの名前の見た目は kit 既定の .kicker（13px・ink-60・字間 .18em・英字は大文字・serif-en）。
+   余白・5co ロゴ・数字の帯・フッターは変えない（帯の下端は header_mount.js が青い線を測って合わせる）。正＝header_pagename/HEADER_PAGENAME_HANDOFF.md */
+section.slide.ci-hpn > .hdr{gap:0;}
+section.slide.ci-hpn > .hdr > .hdr-psep{display:block;flex:none;align-self:flex-start;width:1px;height:18px;margin:5px 12px 0 14px;background:var(--ink-60);}
+/* v2（若松さん 2026-11-11 15:32「ページの名前は、文字の大きさをほかのスライド実績を共有フォルダから探してください。英語がデフォルトかも？」）:
+   ページの名前は kit 既定の .kicker（ci-format-v3.2.css：serif-en・13px・ink-60・letter-spacing .18em・uppercase）をそのまま使う。
+   ここでは行の中の置き方だけ決める（大きさ・色・字間は .kicker のまま＝上書きしない） */
+section.slide.ci-hpn > .hdr > .hdr-pname{display:block;flex:0 1 auto;min-width:0;align-self:flex-start;height:28px;line-height:28px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;}
+/* 発表（T）で見出しが「話題／答え」の2段に組み替えられたページ（h2 に data-ci-tk-orig）では、話題が見出し側に出るので1行目の名前は隠す（重複を避ける） */
+section.slide.ci-hpn:has(> h2.title[data-ci-tk-orig]) > .hdr > .hdr-pname,
+section.slide.ci-hpn:has(> h2.title[data-ci-tk-orig]) > .hdr > .hdr-psep{display:none;}
+/* 5co ロゴ（svg.corner・既定 top 15mm＝57〜130px）は、見出しが1段減って本文の開始が 119px に上がると要点帯（.gist）と重なる
+   （check_fixed_overlap.py FIXED-OVERLAP 11px）。重なる位置にだけ動かす方針で、ci-hpn のページは top 36px（36〜109px・本文と 10px 空く）。
+   大きさ・右位置は不変。ページごとに位置がばらつかないよう ci-hpn の全ページで同じ値 */
+section.slide.ci-hpn > svg.corner{top:36px;}

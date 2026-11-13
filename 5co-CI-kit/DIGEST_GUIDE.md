@@ -40,6 +40,7 @@
 
 - 写真は相対パス `figs/digest/...`（例: `figs/digest/scenes/cutouts/slide/...jpg`）。フル・#static・印刷では出さない（`.dg-photo{display:none}` 既定）。
 - **図（グラフ）hero には写真を足さない**。写真を唯一の視覚にするときは `figure.dg-photo` に `data-digest-keep="hero"`。**数字＋写真**のときは数字ブロック（`.okr` / `.ci-panel`）に `data-digest-keep="hero"`、`figure.dg-photo` に `data-digest-keep="photo"` + `data-dg-photo="cutout"`（右下に添える）。
+- 例外（v3.21.0・オプトイン）：`--fill-whitespace-photo` は、ダイジェストで本文エリアの15%以上・3列×2行以上の空きが残るページに人物写真を1枚足す（図 hero のページでも空きに置き、図には重ねない。1ページ1枚＝`.dg-photo`・`.dgx-person` が見えていれば足さない）。社内版の Framework ピッカーでは、ダイジェストの図そのものを人物写真／任意の写真に置き換えられる（図の数字は消えるので、要点に同じ数字があるページで使う）。正＝`ws_photo/WS_PHOTO_RULE.md`。
 
 ## Amazon人物型（v3.12・`data-dg-layout="cutout"`）
 

@@ -11,6 +11,8 @@
 - v1.9.1（2026-10-31・v3.13.1）: 台本の帯がフッター行（コピーライト・頁番号・集計期間・ボタン）を隠さない。
   帯の高さぶん下に余白、スライドが「画面 − 帯」に収まらない全画面などではフッター行を帯の上へ持ち上げ hero の下も空ける。
 - v1.9.2（2026-10-31・v3.13.2）: 持ち上げ中は、スライド下半分の絶対配置の要素（表紙の CI 説明・締めの同意欄など）も同じだけ持ち上げる。
+- v1.9.3（2026-11-11・v3.20.0）: 発表（T）の見出し2段は、タグの外の「最後の」全角｜で「話題／答え」に分ける
+  （ページの名前に｜が入ると最初の｜で切れていた。header_pagename の data-talk-h＝「名前｜答え」）。
 使い方: python3 5co-CI-kit/digest_toggle.py <deck.html>
         python3 5co-CI-kit/digest_toggle.py --talk <deck.html>   … 既存のダイジェスト付きデッキに発表（T）と台本（S）だけを足す／入れ替える（冪等）"""
 import re, sys
@@ -150,7 +152,7 @@ html.ci-static .dg-photo img{animation:none !important;}
 '''
 
 # v1.9（2026-10-31・v3.13）: 発表（T／#talk）と台本（S）。BLOCK の END の直前に入れる（手組みデッキには --talk で足す）
-TALK_BLOCK = r'''<!-- ci-digest-talk v1.9.2 (BEGIN) — 2026-10-31 発表（キー T／URL #talk で hero のある全ページを一括ダイジェスト＋発表の見せ方・キー S で台本の帯）。通常表示・#static・印刷・検査は不変。正＝DIGEST_GUIDE.md「発表（T）と台本（S）」（5co-CI-kit v3.13） -->
+TALK_BLOCK = r'''<!-- ci-digest-talk v1.9.3 (BEGIN) — 2026-10-31 発表（キー T／URL #talk で hero のある全ページを一括ダイジェスト＋発表の見せ方・キー S で台本の帯）。通常表示・#static・印刷・検査は不変。正＝DIGEST_GUIDE.md「発表（T）と台本（S）」（5co-CI-kit v3.13） -->
 <style id="ci-digest-talk-css">
 /* 発表の見せ方は html.ci-talk（キー T／#talk）のときだけ。各ページのボタンでダイジェストにしただけでは変わらない */
 @media screen{
@@ -194,7 +196,7 @@ html.ci-script-on:not(.ci-static).ci-talk-lift section.slide > [data-ci-tk-lift]
 @media print{ .ci-talk-bar{display:none !important;} }
 </style>
 <script id="ci-digest-talk-js">
-/* ci-digest-talk v1.9.2: T／#talk＝hero のある全ページを一括でダイジェスト＋発表の見せ方、S＝台本の帯。
+/* ci-digest-talk v1.9.3: T／#talk＝hero のある全ページを一括でダイジェスト＋発表の見せ方、S＝台本の帯。
    台本＝section の data-talk-script（無ければ「このページの要点」）。見出し＝section の data-talk-h「話題｜答え」（無ければ h2.title の「話題｜答え」）。
    各ページのボタンはそのまま（表示を合わせる）。#static・印刷では何もしない（印刷の前に外し、後で戻す）。 */
 (function(){
@@ -203,8 +205,9 @@ html.ci-script-on:not(.ci-static).ci-talk-lift section.slide > [data-ci-tk-lift]
   function isStatic(){ return R.classList.contains("ci-static") || /(^|[#&])static\b/.test(location.hash); }
   function slides(){ return [].slice.call(D.querySelectorAll("section.slide")); }
   function esc(t){ var d = D.createElement("div"); d.textContent = t; return d.innerHTML; }
-  function sepAt(h){ var depth = 0; for (var k = 0; k < h.length; k++){ var c = h.charAt(k);
-    if (c === "<") depth++; else if (c === ">") depth = Math.max(0, depth - 1); else if (c === SEP && depth === 0) return k; } return -1; }
+  /* v1.9.3: 区切りはタグの外の「最後の」｜（ページの名前に｜が入っても答えの前で分ける・v3.20.0） */
+  function sepAt(h){ var depth = 0, last = -1; for (var k = 0; k < h.length; k++){ var c = h.charAt(k);
+    if (c === "<") depth++; else if (c === ">") depth = Math.max(0, depth - 1); else if (c === SEP && depth === 0) last = k; } return last; }
   function splitTitle(s){
     var t = s.querySelector(":scope > h2.title"); if (!t || t.hasAttribute("data-ci-tk-orig")) return;
     var h = s.hasAttribute("data-talk-h") ? esc(s.getAttribute("data-talk-h")) : t.innerHTML, i = sepAt(h);
@@ -323,7 +326,7 @@ html.ci-script-on:not(.ci-static).ci-talk-lift section.slide > [data-ci-tk-lift]
   if (D.readyState === "loading") D.addEventListener("DOMContentLoaded", boot); else boot();
 })();
 </script>
-<!-- ci-digest-talk v1.9.2 (END) -->
+<!-- ci-digest-talk v1.9.3 (END) -->
 '''
 BLOCK = BLOCK.replace('<!-- ci-digest-toggle v1.9 (END) -->', TALK_BLOCK + '<!-- ci-digest-toggle v1.9 (END) -->', 1)
 
