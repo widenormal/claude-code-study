@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "template_version": "2026.11.21",
+  "template_version": "2026.11.22",
   "released_at": "2026-11-03",
-  "source_revision": "2bbf22731da6ce2d3bef5fd5f1bbc1deda76d438",
+  "source_revision": "70eb4926d1eb07f58023254ceb907f17eca8c9ef",
   "target": "github",
-  "managed_content_digest": "sha256:4ea063d9bbe0c9616839762eae1da1fab0894c4a639f46242d02dd88ceeb0401",
+  "managed_content_digest": "sha256:ed637a07dd38af8c6fbab6aa143e9e71726eaacf14bd8b5fcfc97ee1078678d7",
   "files": {
     ".claude/commands/mm.md": "a07a3f25eaef9cd5e31d20731068e1110b040a74c6b756fce4c944a1bdb091b0",
     ".claude/hooks/block-personal-info.sh": "9d0b4742544a14da8e35451bb62fa59861dbd9def866795ce37f626863babf80",
@@ -59,12 +59,12 @@
     ".claude/skills/x-search.md": "323e8f71abb89f812c5f25267e4d4e4f608105a33fadaadab6355fc76a20f26a",
     ".env.gemini.example": "0b1bd50a3417db3f630d6c9aecd7d393114c5d73067790cea524cac6e8f3a28f",
     ".github/workflows/op-secrets.yml": "71c04bc823e06aa4158dc961e065845347db73d3fc6efb1479ae75096d6bc344",
-    "5co-CI-kit/5co_biz_briefing_template.html": "dc678b4476d67a7ea9ae30fb92f41c1ca39d6ff58fff82de42938ed3c540b9db",
+    "5co-CI-kit/5co_biz_briefing_template.html": "4374accea933d0e75427f19b478ead7c76669832ba945cea9ee64562b45788f0",
     "5co-CI-kit/5co_slide_template.html": "2e485b8d1028d2909eddc9a7592107827a06d7ababa4758d5b0389855fcc9baf",
     "5co-CI-kit/5co_slide_template.pdf": "42899e3b273ac388afd4848a9798ee9a657256bff64ab07345c3a02a821b5906",
     "5co-CI-kit/5co_slide_template_standalone.html": "cd401240b94cba443ec896fe8cd75db24fd92a89b731e864ef90cd9a9c5f5458",
     "5co-CI-kit/BRAND_GUIDELINE.md": "b465a948b3e14fb029622d155efde5241065ff80f9344f10cdf75341c2fcd78d",
-    "5co-CI-kit/CHANGELOG.md": "47dbabdf2edade71eee7b45bb1a62aa5459aa567d46a7a0bbd3e8f8646780c0b",
+    "5co-CI-kit/CHANGELOG.md": "8e1a4d99a9f020184926899360e166246674435a056ddf5ab71df24086291f17",
     "5co-CI-kit/CI_KICKOFF.md": "9656b523d38f2f319759b9a594325f4e4b21b2c6b0029a6791f269e4fad44021",
     "5co-CI-kit/CLIENT_CLAUDE_TEMPLATE.md": "7e0c4b2f05c15254c79107a7a801eb4bd9aaf7c10f79c74509228c1a6a0fb8df",
     "5co-CI-kit/CONTEXT_MD_DESIGN.md": "17e26010b48c816e58765ae2886dd62add7190b8d868c78f085d181be6518357",
@@ -83,7 +83,7 @@
     "5co-CI-kit/TERMS_AMAZON.md": "342bf1daf232e4f574e472c4feb7bf344b75b8166c4ade530a35dc4cd20c2ad6",
     "5co-CI-kit/TERMS_AMAZON_ADS.md": "25da0c8197f3488bb2172a8a0be5da6789de5f4cd2ef6195e1f974986f539b63",
     "5co-CI-kit/V3.2_FORMAT.md": "b83336a5c6740742b5bb4a6c18fee73d7247596c21e76103da11b23819548f29",
-    "5co-CI-kit/VERSION": "7c6b84e66e3b26fa849cb0d22f1927621cb83e2b943a2324849c16109134526b",
+    "5co-CI-kit/VERSION": "852132262ac93a831b5c7acfb471b6fad4a97f0ab0e603e848a52d94a586cb83",
     "5co-CI-kit/_RETIRED.txt": "80aba54427af91d00b88fbede28532df0b1293c11ce2b61f1d82280dd4b0640c",
     "5co-CI-kit/assets/5_glyph.svg": "b835b2d679bd938f385f0236b0bb857a7b47f9534ee2f0bc2b983b3fbfaa0c1d",
     "5co-CI-kit/assets/5co_logo_lockup_currentColor.svg": "79b433e301a62b3277310cf76c4abbce10f56f75516fe37e27a2be47ba5d16a3",
@@ -533,6 +533,6 @@
     "scripts/openrouter.py": "8ba96735c5308474e480352fc551a5dd0d051d6f6f0edf012f24a10c23501e8b",
     "scripts/qwen-call.sh": "094edfb978ee4b459e1fccf4ee19e486def37c396494693605f7da574fe5d442",
     "scripts/x-search.sh": "7ee2880f2f2b8660d8168446cd35ebccfefa41629b142040542695c150d3d7e8",
-    "template-manifest.json": "f2d16e8a0cbb9af3cd8c46d792e9f9c1f9c484be5aa43c6ace26836e904a38a2"
+    "template-manifest.json": "7ef41fb55e7df8dc09d2f76fcfd21db879fe8183ae83a7760984bc803159f5fa"
   }
 }
