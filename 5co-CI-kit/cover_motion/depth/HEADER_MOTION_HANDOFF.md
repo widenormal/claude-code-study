@@ -17,3 +17,10 @@
 ## 動き
 - エンジンは表紙と同じ `oracle-school-depth.min.js`（変更しない）。取り付けは `header_mount.js`（オプションだけ渡す）。
 - 見えているページだけ動く。reduced-motion・印刷・`#static`／`html.ci-static` は t=6 の決まった静止画。
+
+## v3.21.3 本文ヘッダーflex対応（2026-11-19）
+`.hdr-row` 内の `.hdr-main`（キッカー＋タイトル＋補助行）と102pxの `.corner` を天地中央に置く。
+ヘッダー帯の前面指定は `.hdr-row` にも適用。従来 `.hdr` の上側 -30px は外側の行へ移す。
+アクセント線は行の外に残し、帯の下端測定は従来どおり。エンジンJSと `.cf-corner` は変更しない。
+移行手順・余白解除・旧digest再注入は `SLIDE_DESIGN_GUIDELINES.md`「本文ヘッダーのロゴ中央揃え」を参照。
+出典：若松さん決定 採用経由（2026-11-19 16:42 JST）。
