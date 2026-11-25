@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "template_version": "2026.11.41",
+  "template_version": "2026.11.44",
   "released_at": "2026-11-23",
-  "source_revision": "2e324fcb18313c0bd49d2faa1a9d4a8902f87666",
+  "source_revision": "bed76e0577c515e4fb8ed88ba4ccaff3f0e39c3d",
   "target": "github",
-  "managed_content_digest": "sha256:3aac42072ede8c1c9172df828ec8ec92adfbb9e2f7d6e631d83dd124853fd493",
+  "managed_content_digest": "sha256:c71439c913db1a5910f38e53767c4b662d68f6192ba92fd7a19cec3231b49507",
   "files": {
     ".claude/commands/mm.md": "a07a3f25eaef9cd5e31d20731068e1110b040a74c6b756fce4c944a1bdb091b0",
     ".claude/hooks/block-personal-info.sh": "9d0b4742544a14da8e35451bb62fa59861dbd9def866795ce37f626863babf80",
@@ -523,7 +523,7 @@
     "docs/agents/rules/2026-11-17_bulk-bot-query.md": "68088a23b55bdb7e64099490beddf18ee2ae9dd5748075ae97033ece2eb85959",
     "docs/agents/rules/2026-11-22_no-invented-terms.md": "a926919d2e0ba783b50582151c5594b4618a7ef3090d576138d7534645b2d374",
     "docs/agents/rules/2026-11-23_shelpha-asin-multillm-exception.md": "95db9a8758580c808486abf1f00aa90c1a2c9d1d6ed15cdb2a7d7c5e5c6c5b04",
-    "docs/agents/rules/2026-11-24_t3-harness-relay.md": "a2394cb3488ea045a81ec119d7239d44d8596b26d0fb627d2afe4d1668df4b90",
+    "docs/agents/rules/2026-11-24_t3-harness-relay.md": "1b29c79b44b81813a16b2c02b2404723ef466692f7c8dc09ef864120cdc346a2",
     "docs/ci-canonical-bootstrap.md": "7f2ee246b4c4aa99d428347fb9b429bb2bfb7f4fcea04c76ce92b516021570dd",
     "docs/codex-claude-instructions.md": "9ee500105aa1ec1175146a62344bf79861c0fd6724bfe97753adb8f287acb17d",
     "docs/op-secrets-central.md": "299e3fe874e651d31df0fbacc396edc91fa5cd75ac407f33dd6ba0c6d1feab95",
@@ -549,6 +549,6 @@
     "scripts/openrouter.py": "8ba96735c5308474e480352fc551a5dd0d051d6f6f0edf012f24a10c23501e8b",
     "scripts/qwen-call.sh": "094edfb978ee4b459e1fccf4ee19e486def37c396494693605f7da574fe5d442",
     "scripts/x-search.sh": "7ee2880f2f2b8660d8168446cd35ebccfefa41629b142040542695c150d3d7e8",
-    "template-manifest.json": "380c8b5de7033388c9245d6957dd89f815cccc64dfe4d18867c0dd1aa26f9c65"
+    "template-manifest.json": "72a999260d470aee16738212fc030c6ffbf33b52301f5fa36e8ac2ee56c30b1d"
   }
 }
