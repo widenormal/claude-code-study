@@ -84,6 +84,103 @@ from pathlib import Path
 KIT = Path(__file__).resolve().parent
 
 
+
+def apply_header_corner_flex(html: str) -> str:
+    """Opt in legacy body headers to flex, preserving all untouched source bytes.
+
+    Direct .hdr (including its full contents) + following h2.title become the
+    left block. A direct .kicker + h2.title is also supported. Extra status
+    rows must be inside .hdr or an explicit .hdr-main. Covers/dividers and
+    ambiguous structures are left unchanged. Repeated calls are idempotent.
+    """
+    from html.parser import HTMLParser
+
+    class Nodes(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=False)
+            self.lines = [0]
+            for match in re.finditer("\n", html):
+                self.lines.append(match.end())
+            self.nodes, self.stack = [], []
+
+        def byte_pos(self):
+            line, col = self.getpos()
+            return self.lines[line - 1] + col
+
+        def handle_starttag(self, tag, attrs):
+            start = self.byte_pos()
+            node = dict(tag=tag, attrs=dict(attrs), start=start,
+                        end=start + len(self.get_starttag_text()),
+                        parent=self.stack[-1] if self.stack else None, children=[])
+            if self.stack:
+                self.stack[-1]['children'].append(node)
+            self.nodes.append(node)
+            if tag not in {'area','base','br','col','embed','hr','img','input',
+                           'link','meta','param','source','track','wbr'}:
+                self.stack.append(node)
+
+        def handle_startendtag(self, tag, attrs):
+            self.handle_starttag(tag, attrs)
+            if self.stack and self.stack[-1]['start'] == self.byte_pos():
+                self.stack.pop()
+
+        def handle_endtag(self, tag):
+            for i in range(len(self.stack) - 1, -1, -1):
+                if self.stack[i]['tag'] == tag:
+                    self.stack[i]['end'] = html.index('>', self.byte_pos()) + 1
+                    del self.stack[i:]
+                    break
+
+    def has(node, cls):
+        return cls in (node['attrs'].get('class') or '').split()
+
+    parser = Nodes()
+    parser.feed(html)
+    edits = []
+    for slide in parser.nodes:
+        if slide['tag'] != 'section' or not has(slide, 'slide'):
+            continue
+        if any(has(slide, c) for c in ('cover-full', 'divider', 'pd-divider')):
+            continue
+        children = slide['children']
+        if any(has(c, 'hdr-row') for c in children):
+            continue
+        corners = [c for c in children if has(c, 'corner')]
+        headers = [c for c in children if has(c, 'hdr') or has(c, 'hdr-main')]
+        if not headers:
+            headers = [c for c in children if has(c, 'kicker')]
+        if len(corners) != 1 or len(headers) != 1:
+            continue
+        corner, header = corners[0], headers[0]
+        hi = children.index(header)
+        end = header['end']
+        if hi + 1 < len(children):
+            title = children[hi + 1]
+            if title['tag'] == 'h2' and has(title, 'title'):
+                end = title['end']
+        if has(header, 'kicker') and end == header['end']:
+            continue
+        if header['start'] <= corner['start'] < end:
+            continue
+        left = html[header['start']:end]
+        replacement = ('<div class="hdr-row"><div class="hdr-main">' + left +
+                       '</div>' + html[corner['start']:corner['end']] + '</div>')
+        edits.extend([(header['start'], end, replacement),
+                      (corner['start'], corner['end'], '')])
+    if not edits:
+        return html
+    for start, end, replacement in sorted(edits, reverse=True):
+        html = html[:start] + replacement + html[end:]
+    # Migrated legacy decks may embed old CSS. Inject only the canonical block.
+    if 'id="ci-header-corner-flex"' not in html:
+        css = (KIT / 'ci-format-v3.2.css').read_text(encoding='utf-8')
+        block = re.search(r'/\* header-corner-flex BEGIN.*?/\* header-corner-flex END \*/',
+                          css, re.S).group(0)
+        style = '<style id="ci-header-corner-flex">' + block + '</style>'
+        html = html.replace('</head>', style + '</head>', 1) if '</head>' in html else style + html
+    return html
+
+
 def _version_text() -> str:
     vf = KIT / "VERSION"
     if not vf.exists():
@@ -714,7 +811,13 @@ def main(argv):
         mfit = "--no-mobile-fit" not in argv
         cmot = "--no-cover-motion" not in argv
         engine = _check_engine(_opt(argv, "--cover-motion-engine", str, COVER_MOTION_ENGINE))
-        if "--apply-cover-motion" in argv:
+        if "--apply-header-corner-flex" in argv:
+            src = _opt(argv, "--apply-header-corner-flex")
+            if not src or not Path(src).is_file():
+                raise FileNotFoundError("--apply-header-corner-flex requires an HTML file")
+            dst = _opt(argv, "-o", str, src)
+            Path(dst).write_text(apply_header_corner_flex(Path(src).read_text(encoding="utf-8")), encoding="utf-8")
+        elif "--apply-cover-motion" in argv:
             src = _opt(argv, "--apply-cover-motion")
             if not src or not Path(src).is_file():
                 raise FileNotFoundError(f"--apply-cover-motion のデッキが見つかりません: {src}")

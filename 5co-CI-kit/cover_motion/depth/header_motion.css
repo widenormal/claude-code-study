@@ -9,7 +9,7 @@
 /* v3.17.1 若松さん指示 2026-11-05: 左は白く消え・右は今の濃さ（左端0→40% 0.5→70%以降1）。ロゴ周りの radial と重ねる（intersect）。canvas のみ＝文字・ロゴには掛けない */
 .slide.ci-hb-on > .ci-hb{--hb-lr:linear-gradient(to right,rgba(0,0,0,0) 0%,rgba(0,0,0,.5) 40%,#000 70%);}
 .slide.ci-hb-on > .ci-hb > canvas{-webkit-mask-image:var(--hb-lr),var(--hb-m2);-webkit-mask-composite:source-in;mask-image:var(--hb-lr),var(--hb-m2);mask-composite:intersect;}
-.slide.ci-hb-on > .hdr,.slide.ci-hb-on > h2.title,.slide.ci-hb-on > .accent-bar{position:relative;z-index:1;}
+.slide.ci-hb-on > .hdr-row,.slide.ci-hb-on > .hdr,.slide.ci-hb-on > h2.title,.slide.ci-hb-on > .accent-bar{position:relative;z-index:1;}
 .slide.ci-hb-on > .corner{z-index:1;}
 html.ci-static .ci-hb-canvas{opacity:1!important;transition:none!important;}
 @media print{.ci-hb-canvas{transition:none!important;opacity:1!important;}}
@@ -17,3 +17,7 @@ html.ci-static .ci-hb-canvas{opacity:1!important;transition:none!important;}
 .slide.ci-hb-on > .hdr{margin-top:-30px;margin-bottom:0;}
 .slide.ci-hb-on > h2.title{margin-bottom:0;}
 .slide.ci-hb-on > .accent-bar{margin:5px 0 16px;}
+
+/* Flex wrapper now owns the legacy header top offset. */
+.slide.ci-hb-on > .hdr-row{margin-top:-30px;}
+.slide.ci-hb-on > .hdr-row .hdr{margin-top:0;margin-bottom:0;}

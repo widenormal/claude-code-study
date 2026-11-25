@@ -136,3 +136,9 @@ tbody tr:nth-child(even){background:var(--crystal-25);}
 .hl{background:var(--crystal-55);}
 
 .cmp td,.cmp th{padding:3px 9px;line-height:1.35;}
+/* header-corner-flex BEGIN — v3.21.3; legacy siblings opt in via ci_head */
+.slide:not(.cover-full) > .hdr-row{display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;z-index:1;flex-shrink:0;}
+.hdr-row > .hdr-main{flex:1 1 0;min-width:0;display:flow-root;}
+.slide:not(.cover-full) > .hdr-row > .corner{position:static !important;inset:auto !important;transform:none !important;margin:0 !important;flex:0 0 102px;width:102px !important;max-width:none;height:auto;display:block;}
+.hdr-row > .hdr-main h2.title{padding-right:0;max-width:none;}
+/* header-corner-flex END */

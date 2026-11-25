@@ -74,7 +74,7 @@ html:not(.ci-static) section.slide[data-page-mode="digest"]{display:flex; flex-d
 /* 絶対配置の子（ボタン・コーナーロゴ・版スタック）はフローに入れない */
 html:not(.ci-static) section.slide[data-page-mode="digest"] > :is(.ci-digest-btn,.corner,.ci-stack,.period){position:absolute;}
 /* 既定: hero / gist / ヘッダー類以外は隠す。表・複数カード・ドリルダウンも隠す */
-html:not(.ci-static) section.slide[data-page-mode="digest"] > :not(.hdr):not(.title):not(.accent-bar):not(.gist):not(.note-line):not(.corner):not(.ci-digest-btn):not([data-digest-keep="hero"]):not([data-digest-keep="photo"]):not(:has([data-digest-keep="hero"])),
+html:not(.ci-static) section.slide[data-page-mode="digest"] > :not(.hdr-row):not(.hdr):not(.title):not(.accent-bar):not(.gist):not(.note-line):not(.corner):not(.ci-digest-btn):not([data-digest-keep="hero"]):not([data-digest-keep="photo"]):not(:has([data-digest-keep="hero"])),
 html:not(.ci-static) section.slide[data-page-mode="digest"] > .t-note,
 html:not(.ci-static) section.slide[data-page-mode="digest"] .ci-ev-btn,
 html:not(.ci-static) section.slide[data-page-mode="digest"] table,
