@@ -180,7 +180,7 @@
 
 1. T3 Connect と Publish を使わない。
 2. テレメトリをオンにしない（オフのまま）。
-3. Rutzbo の次のものに触らない：agy hooks、launch-guard、Tailscale、ファイアウォール、ポート、ルータ、ログイン項目、`~/work/AI-shelpha`。
+3. Rutzbo の次のものに触らない：agy hooks、launch-guard、Tailscale、ファイアウォール、ポート、ルータ、ログイン項目。T3の設定作業では、`~/work/AI-shelpha` のフックや設定ファイルを変えない。Shelphaの作業で開いて使うのはよい。
 4. 「Install managed runtime」を押さない。
 5. Antigravity プロバイダの設定で、API キー・GCP プロジェクト・ロケーションを埋めない（空のまま）。binary path は Automatic、instance ID は `antigravity` のまま。
 6. 秘密の値（パスワード・APIキー・トークン・Cookie）を、指示文・`progress.md`・この種の文書・ログに書かない。1Password の参照だけ。
