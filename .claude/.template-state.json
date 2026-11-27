@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "template_version": "2026.11.41",
+  "template_version": "2026.11.51",
   "released_at": "2026-11-23",
-  "source_revision": "2e324fcb18313c0bd49d2faa1a9d4a8902f87666",
+  "source_revision": "d3923d7baa2f69eec764399172558d8e2ab5ad04",
   "target": "github",
-  "managed_content_digest": "sha256:3aac42072ede8c1c9172df828ec8ec92adfbb9e2f7d6e631d83dd124853fd493",
+  "managed_content_digest": "sha256:2b68ae3a63d0c8cb5c986afaf3abe4687e7245310ff17550d2f7c065144a30eb",
   "files": {
     ".claude/commands/mm.md": "a07a3f25eaef9cd5e31d20731068e1110b040a74c6b756fce4c944a1bdb091b0",
     ".claude/hooks/block-personal-info.sh": "9d0b4742544a14da8e35451bb62fa59861dbd9def866795ce37f626863babf80",
@@ -508,10 +508,10 @@
     "docs/SLIDE-PATTERN/SLIDE-PATTERN-waterfall-bridge-chart/SLIDE-PATTERN-waterfall-bridge-chart.md": "b28233181ed720ae448f8ec3ea904033aa6c1923b553cd997b7ae72fb0f481ba",
     "docs/SLIDE-md/SLIDE-md-5co/SLIDE.md": "8291403ca811e3e6afc526a47fcd1cd3052c2eef2cb6cb58665f433b33ff2f8c",
     "docs/SLIDE-md/SLIDE-md-5co/sample.html": "821c653e89330c3ef4cf47cc2dd98450dfca0d72dff593c202490ac70a7440b6",
-    "docs/agents/AGENTS.md": "c34bbb85509507d267c7033f2df036f8104b02af06d1d78a8dc2c14a1a15b72d",
+    "docs/agents/AGENTS.md": "e6a86826a75d946b443799fb4c825a235ab7d6215fc5b80a56d8e1577739ce37",
     "docs/agents/README.md": "f75c7c01942347f073c6b1036dd663e043b42ef064bba210e8e3687df5197602",
     "docs/agents/rules/2026-11-14_handoff-by-file.md": "9f9bdeb5dfd2e8144065ca56e51ea03ef96c2b2f67747a6be11ac1a9581e6b8f",
-    "docs/agents/rules/2026-11-15_grok-minimal-multillm.md": "0f5e510d788e652c5e3116cc1d4fbda5afea053a58953b1d99698d41b69a4db8",
+    "docs/agents/rules/2026-11-15_grok-minimal-multillm.md": "1be75392ae32e92675ce2b15054cf4e0b4982f3e67b18133d23b0236637eaef2",
     "docs/agents/rules/2026-11-15_llm-tag-suffix.md": "997fff0f9d1fc21411c7b57137ac8e2e868d8d5e9739f87aa88fd7bddfe5f21f",
     "docs/agents/rules/2026-11-16_builder-owns-secrets-and-delivery.md": "a5eeedd0d0d7ed3ee9c5dd78b1c691464b64d9592084090e9f7f4a86eeb61fbd",
     "docs/agents/rules/2026-11-16_codex-progress-file.md": "afdc76709757a1b0e69f74bd123d238b0dd7e2b74f66928df2571d5cc6ca19f2",
@@ -522,8 +522,12 @@
     "docs/agents/rules/2026-11-16_repo-AGENTS-snippet.md": "696dbeb45f674bea04edfff35a5e19d6da8bfd2eef5e96986140974b57600451",
     "docs/agents/rules/2026-11-17_bulk-bot-query.md": "68088a23b55bdb7e64099490beddf18ee2ae9dd5748075ae97033ece2eb85959",
     "docs/agents/rules/2026-11-22_no-invented-terms.md": "a926919d2e0ba783b50582151c5594b4618a7ef3090d576138d7534645b2d374",
-    "docs/agents/rules/2026-11-23_shelpha-asin-multillm-exception.md": "95db9a8758580c808486abf1f00aa90c1a2c9d1d6ed15cdb2a7d7c5e5c6c5b04",
-    "docs/agents/rules/2026-11-24_t3-harness-relay.md": "a2394cb3488ea045a81ec119d7239d44d8596b26d0fb627d2afe4d1668df4b90",
+    "docs/agents/rules/2026-11-23_shelpha-asin-multillm-exception.md": "890934f40af2905a94e84ddefff82e7068a3120bb45686caec8caebe94eccda2",
+    "docs/agents/rules/2026-11-24_t3-harness-relay.md": "f68e0763b7d34528a84c86906bd88a0605c4663885ddd112c27f382b770f7813",
+    "docs/agents/rules/2026-11-26_workforce-pillars-guard.md": "3f5dde026fb75c85df8e31392e5807086b969bb4401ff7f9f50877b65d114687",
+    "docs/agents/rules/2026-11-27_workforce-pillars-enforce.md": "ad33656af245f71137b82b0e9dd469b6851ac195b53b3a0d1ed893312b4f20d1",
+    "docs/agents/templates/handoff-task.template.md": "ffba215c0aba513f8ec528c43f9e0e0311862b4bf1f0b464650f9ce652606d01",
+    "docs/agents/templates/worker-preamble.md": "145a9553f5329be1a0c444811f954b31885192439cf5c2fd7525ebe0c145bf8b",
     "docs/ci-canonical-bootstrap.md": "7f2ee246b4c4aa99d428347fb9b429bb2bfb7f4fcea04c76ce92b516021570dd",
     "docs/codex-claude-instructions.md": "9ee500105aa1ec1175146a62344bf79861c0fd6724bfe97753adb8f287acb17d",
     "docs/op-secrets-central.md": "299e3fe874e651d31df0fbacc396edc91fa5cd75ac407f33dd6ba0c6d1feab95",
@@ -549,6 +553,6 @@
     "scripts/openrouter.py": "8ba96735c5308474e480352fc551a5dd0d051d6f6f0edf012f24a10c23501e8b",
     "scripts/qwen-call.sh": "094edfb978ee4b459e1fccf4ee19e486def37c396494693605f7da574fe5d442",
     "scripts/x-search.sh": "7ee2880f2f2b8660d8168446cd35ebccfefa41629b142040542695c150d3d7e8",
-    "template-manifest.json": "380c8b5de7033388c9245d6957dd89f815cccc64dfe4d18867c0dd1aa26f9c65"
+    "template-manifest.json": "3d5d5bfadc002f9550c9e29961f0006d8135809a306d31c49507e07c2a060d18"
   }
 }

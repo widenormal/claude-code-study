@@ -71,7 +71,7 @@ cd /workspace/<作業名> && mkdir -p out
   - UI の仕上げ、法務文書、最終判断には使わない。
 - **外部 LLM に出してよい範囲（若松さん決定 2026-11-02 15:59）**：学習に使わない設定（Muse は Contributor mode オフ、agy は学習オフ など）なら、**Shelpha のデータそのもの（推計値・推計データ）と秘密の値（パスワード・APIキー・トークン・Cookie）以外は**、Muse を含むどの LLM に出してもよい。この2つだけは task.md にも、Muse に渡す作業フォルダ（`--workspace` / `--project` で読める範囲）にも、Muse が読む agmsg スレッドにも置かない。
 - 作業フォルダに Shelpha のデータそのもの（CSV・JSON・SQL の結果など）や秘密の値のファイルが無いことを確かめてから渡す。`/workspace` 直下は渡さない。
-- 例外 2026-11-23 19:03 JST 若松さん承認：補正が終わるまで、ShelphaのASIN単位データはRutzboの中でだけ claude -p（fableを含む）、codex exec、agy の gemini-4-carbon-low/medium/high（2026-11-24 07:48 若松さん追加）に渡してよい。チャット・box・ほかのサービスには出さない。終わりは若松さんが宣言する。（19:21追加：須藤のmemory/active-context/sudo.md と memory/decisions.md も同じ範囲・同じ期限で渡してよい）正本 rules/2026-11-23_shelpha-asin-multillm-exception.md
+- 例外 2026-11-23 19:03 JST 若松さん承認：補正が終わるまで、ShelphaのASIN単位データはRutzboの中でだけ claude -p（fableを含む）、codex exec、agy の gemini-4-carbon-low/medium/high（2026-11-24 07:48 若松さん追加）に渡してよい。補正作業に限り、須藤@tw1 → Rutzbo上のT3（Claude〈claudeAgent〉と Codex。15:33–15:34 追加で Antigravity 経由の Gemini。T3 に Ollama は乗せない）、Rutzbo内の Gemini CLI、Rutzbo内の Ollama（127.0.0.1 直接・gemma4:26b と qwen-slide:latest）も使ってよい（2026-11-26 15:32・15:33–15:34 若松さん決定）。チャット・box・ほかのサービスには出さない。終わりは若松さんが宣言する。（19:21追加：須藤のmemory/active-context/sudo.md と memory/decisions.md も同じ範囲・同じ期限で渡してよい）正本 rules/2026-11-23_shelpha-asin-multillm-exception.md
 - Contributor mode（Meta の学習利用）は常にオフ。保存設定 `~/.config/muse/settings.json` も `"contributor_mode_enabled": false`。勝手に変えない。`muse` の `/settings` で Contributor mode をオンにしない。
 - サブスクだけ：Meta の API キーを作らない。`META_API_KEY`・`--api-key-stdin`・`muse auth`・従量課金・OpenRouter 経由は使わない。
 - 使ってはいけない：`--yolo`、`--disable-approval`、`--disable-sandbox`、`--contributor-mode on`、`--reasoning-effort max|ultra`。
@@ -152,4 +152,6 @@ agmsg-box history "" 20                       # 履歴
 - Codex進捗ファイル方式：`/workspace/knowledge/agents/rules/2026-11-16_codex-progress-file.md`
 - 外へ送る仕組みを作ったら汐見に知らせて表の担当へ回す（v2）：`/workspace/knowledge/agents/rules/2026-11-16_builder-owns-secrets-and-delivery.md`
 - 頼んだまま止めない（CLIは block_until_ms 0 で起動、切り離さない、progress.md 先頭行にBot名）：`/workspace/knowledge/agents/rules/2026-11-16_no-silent-stall.md`
-- 取り次ぎは Rutzbo の T3 Code を第一候補にする（送信対策の必須条件を含む）：`/workspace/knowledge/agents/rules/2026-11-24_t3-harness-relay.md`
+- 取り次ぎは Rutzbo の T3 Code を第一候補にする（送信対策の必須条件を含む。2026-11-26 16:50 JST から本文の作業は全Botで T3 必須、CLI は T3 が使えないときだけ＝§4.0）：`/workspace/knowledge/agents/rules/2026-11-24_t3-harness-relay.md`
+- AI Workforce「3つの柱」の起動前・完了前チェック（2026-11-26 若松さん決定・PR #1427。チェック項目は全Bot必須／成果物は projects/<案件>/ だけ・outputs/ は一時置きも禁止／台帳は B＋当面 D。スクリプト `scripts/pillars-preflight.sh`・`scripts/pillars-postflight.sh`）：`/workspace/knowledge/agents/rules/2026-11-26_workforce-pillars-guard.md`
+- 同 第2弾：毎回忘れない仕組み（対象版 2026.11.49。2026-11-27 08:02 JST 若松さん決定・須藤 航@tw1 経由。本文の作業はすべて書き手と別のモデルが照合〈Gemini 任意〉・入口は使えるBotだけ必須・Actions での強制は次の別PR。取り次ぎ指示文のひな形 `templates/handoff-task.template.md`・入口 `scripts/handoff-launch.sh`・別モデルの照合・自分の台帳行・切り離し検出）：`/workspace/knowledge/agents/rules/2026-11-27_workforce-pillars-enforce.md`
